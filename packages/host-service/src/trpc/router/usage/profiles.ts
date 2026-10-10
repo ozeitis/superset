@@ -29,6 +29,7 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { resolveAmbientCodexHome } from "@superset/agent-setup";
 import { readProfileFile } from "./profile-file";
+import { QuotaCredentialReadError } from "./quota-credentials";
 
 const execFileAsync = promisify(execFile);
 
@@ -226,23 +227,43 @@ export function claudeKeychainAccounts(
  * accounts are probed first; the unscoped lookup then covers items an older
  * client filed under a different name.
  */
-export async function readKeychainSecrets(service: string): Promise<string[]> {
+export async function readKeychainSecrets(
+	service: string,
+	strict = false,
+): Promise<string[]> {
 	if (platform() !== "darwin") return [];
-	const secrets: string[] = [];
 	const scopes = [
 		...claudeKeychainAccounts().map((account) => ["-a", account]),
 		[],
 	];
-	for (const scope of scopes) {
-		try {
+	return collectKeychainSecrets(
+		scopes,
+		async (scope) => {
 			const { stdout } = await execFileAsync(
 				"security",
 				["find-generic-password", ...scope, "-s", service, "-w"],
-				{ timeout: 5_000 },
+				{ timeout: 5_000, maxBuffer: 1024 * 1024 },
 			);
-			const secret = stdout.trim();
+			return stdout;
+		},
+		strict,
+	);
+}
+
+export async function collectKeychainSecrets(
+	scopes: string[][],
+	read: (scope: string[]) => Promise<string>,
+	strict: boolean,
+): Promise<string[]> {
+	const secrets: string[] = [];
+	for (const scope of scopes) {
+		try {
+			const secret = (await read(scope)).trim();
 			if (secret && !secrets.includes(secret)) secrets.push(secret);
-		} catch {
+		} catch (error) {
+			if (strict && (error as { code?: unknown }).code !== 44) {
+				throw new QuotaCredentialReadError();
+			}
 			// No item under this scope.
 		}
 	}
