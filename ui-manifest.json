@@ -1,0 +1,120 @@
+{
+  "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533",
+  "allDataSynthetic": true,
+  "assets": [
+    {
+      "file": "terminal-account-choice.png",
+      "sha256": "0c1bdc65b047de6a35c5026e2342eadd369a207daad739df213170fd8564af87",
+      "bytes": 32777,
+      "scope": "Actual isolated Electron account-terminal picker. Secondary synthetic login selected."
+    },
+    {
+      "file": "native-chat-account-choice.png",
+      "sha256": "282932cb552fe7746e3dfc735e253a3c9ef011b841f820d9e682daa3e1a031fd",
+      "bytes": 30619,
+      "scope": "Actual isolated Electron native-chat account picker. Synthetic login. Native start remains subject to upstream feature flag."
+    },
+    {
+      "file": "exact-resume-secondary-account.png",
+      "sha256": "96baca27edf83b6a07a5dc658f582cb1713dfa0587d64050a63590d6a9e34905",
+      "bytes": 45141,
+      "scope": "Actual isolated Electron exact native UUID and another-account dialog. Normal-exit/background guard visible. No live account transfer."
+    },
+    {
+      "file": "saved-discovery-after.png",
+      "sha256": "8beda8a4b5035ce907bc1df33de6cd065a678e1933d70c599bc44c2d03bc0cfe",
+      "bytes": 40979,
+      "scope": "Actual isolated Electron native Claude history discovery in the synthetic private workspace."
+    },
+    {
+      "file": "saved-exit-confirmation-required.png",
+      "sha256": "3a926065b1d9550c11d26ce66d66bac6f99051f7bfad2dd41bcfe4f68b7aa9d5",
+      "bytes": 47423,
+      "scope": "Actual isolated Electron first adoption requires the original-session exit confirmation."
+    },
+    {
+      "file": "saved-first-adoption-ready.png",
+      "sha256": "c909a73f17758f499ffb2a3b45eb232aab71341903702acac9543df5a174d9ef",
+      "bytes": 47637,
+      "scope": "Actual isolated Electron selected native UUID and confirmed first adoption."
+    },
+    {
+      "file": "saved-first-adoption-opened.png",
+      "sha256": "bb9af031d27eecf06521f8380d5dfb5c7ef106c256a92ab010ba45f03f492486",
+      "bytes": 71590,
+      "scope": "Actual isolated Electron first adoption opened a task terminal. CLI is disconnected refusal shim; not provider replay proof."
+    },
+    {
+      "file": "saved-open-existing-terminal.png",
+      "sha256": "bd06ad854d4ebccb788001dba3ce53993a2fb013b646504dc7f8b356eb196e95",
+      "bytes": 41319,
+      "scope": "Actual isolated Electron later open offers existing terminal; diagnostics confirm same terminal ID and unchanged binding count."
+    },
+    {
+      "file": "account-selection.gif",
+      "sha256": "104d71f1f1d250e78764c794818f328b4173b953dfa628f76647579da3ae51fd",
+      "bytes": 118801,
+      "scope": "Actual isolated Electron renderer recording: terminal/native account choices and gated native refusal; only sanitized later frames. Idle gaps capped at1.2s."
+    },
+    {
+      "file": "saved-flow-after.gif",
+      "sha256": "3a18f72184d9488c5af33530ea771289270a18897208037504622881b74f0d96",
+      "bytes": 133457,
+      "scope": "Actual isolated Electron renderer recording: fresh native Claude adoption, exact binding, later existing-terminal focus. Disconnected synthetic CLI; idle gaps capped at1.2s."
+    },
+    {
+      "file": "composer-component-before.png",
+      "sha256": "2c7afbb7e402871be356d3565591ff93eced9707ab8c72f1901c4ac4a6fdbc3a",
+      "bytes": 32678,
+      "scope": "Component demonstration only: actual PromptInput/ComposerBody, real Lexical input, controlled async callback. Original draft before submit."
+    },
+    {
+      "file": "composer-component-pending.png",
+      "sha256": "b93d03589690121e26d3004958892ec844d396c65b47406eae0c124601495d3f",
+      "bytes": 34027,
+      "scope": "Component demonstration only: actual composer retains draft and disables duplicate submit while pending."
+    },
+    {
+      "file": "composer-component-rejected-retained.png",
+      "sha256": "75b1fc6080a79d1100fd5d68b639df3a43b94a52121cc23068df647cc94c1fef",
+      "bytes": 33929,
+      "scope": "Component demonstration only: callback resolves false; exact draft remains."
+    },
+    {
+      "file": "composer-component-accepted-cleared.png",
+      "sha256": "e6818f31fce8a2d3851c06286487136a5509d2c6467d9a613a252370b5d51841",
+      "bytes": 30721,
+      "scope": "Component demonstration only: callback accepts unchanged draft; editor clears."
+    },
+    {
+      "file": "composer-component-edited-pending.png",
+      "sha256": "0390c0983dce2e72f9ffa55e35742da6992a57d2c8a939065ce4f5903644dd44",
+      "bytes": 36018,
+      "scope": "Component demonstration only: real user typing continues while the original submit is pending."
+    },
+    {
+      "file": "composer-component-pending-edit-retained.png",
+      "sha256": "c7f2e7ebedced953275419dd81aa06b2fe1e3027ffd0990b3b676556252cf58f",
+      "bytes": 34968,
+      "scope": "Component demonstration only: accepting the earlier submit does not erase text typed while it was pending."
+    },
+    {
+      "file": "composer-component.gif",
+      "sha256": "d69b90905a0e0691d3ca9c4d2d9453b9b85bb7c3e789ae2ba80b53f4516b95da",
+      "bytes": 117570,
+      "scope": "Actual component renderer recording: real Lexical input, pending, false rejection, retry and accepted clearing. Controlled callback; not provider E2E. Idle gaps trimmed."
+    },
+    {
+      "file": "composer-edited-pending.gif",
+      "sha256": "a44fe0cd7a29446be6a0807a57a89de5d82091a9c8abbe3965c62a6cb05bc1f5",
+      "bytes": 70008,
+      "scope": "Actual component renderer recording: new text typed while pending survives acceptance. Controlled callback; not provider E2E. Idle gaps trimmed."
+    }
+  ],
+  "limits": [
+    "No real provider authentication, OAuth, quota refresh or provider transcript replay.",
+    "Native ACP chat respects upstream acp-chat feature flag.",
+    "No production app was installed, stopped, restarted or altered.",
+    "Composer visual proof is a component demonstration; genuine before/after regression tests cover submission acceptance. New-workspace failure screenshots are excluded."
+  ]
+}

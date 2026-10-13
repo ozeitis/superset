@@ -1,0 +1,54 @@
+{
+  "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533",
+  "inputMethod": "CDP Input.dispatchMouseEvent, Input.insertText, Input.dispatchKeyEvent; no DOM property assignment used for interactions. APIs used only to seed synthetic project/workspace and inspect persisted results.",
+  "results": [
+    {
+      "flow": "terminal-account-selection",
+      "result": "passed",
+      "details": "Actual picker chose secondary synthetic profile. One launch, and persisted binding matched its canonical directory, identity and pinned flag. Disconnected provider CLI shim exits44."
+    },
+    {
+      "flow": "native-chat-account-selection",
+      "result": "bounded",
+      "details": "Actual native account picker works. Start refuses when upstream acp-chat flag is disabled. Task-only documented PostHog override was tested with memory persistence and capture opted out; HMR resets it. No actual native ACP provider launched."
+    },
+    {
+      "flow": "saved-history-changed-scan-refusal",
+      "result": "passed",
+      "details": "Actual Open disabled before exit confirmation. Changing only synthetic transcript after scan caused refusal with no launch. Invalid synthetic schema also refused before fixture repair."
+    },
+    {
+      "flow": "saved-first-adoption-roundtrip",
+      "result": "failed-before-passed-after",
+      "details": "Before fixed source, adoption persisted but its returned revision was not the selected DB representation. Actual UI caught this. After qualified fix, fresh UUID55555555\u2026 adopted and opened with exact account/path/session binding in one click."
+    },
+    {
+      "flow": "saved-existing-terminal-focus",
+      "result": "passed",
+      "details": "Later real picker offered Open existing terminal, requiring no new exit affirmation. Same terminal ID and unchanged binding count verified."
+    },
+    {
+      "flow": "exact-resume-dialog",
+      "result": "bounded",
+      "details": "Actual dialog displays exact native UUID, secondary account selection and normal-exit/background-work refusal. No live provider/account transfer claimed."
+    },
+    {
+      "flow": "header-react-key",
+      "result": "failed-before-passed-after",
+      "details": "Actual first terminal launch produced duplicate React key warning. New ResumeAccountButton key was fixed. Revisit/remount produced zero duplicate-key warnings."
+    },
+    {
+      "flow": "composer-async-acceptance",
+      "result": "passed-component-demo",
+      "details": "Actual upstream PromptInput/ComposerBody in task-only Storybook, driven through real Lexical input. Pending retains text and disables duplicate submit. False result retains exact draft. Accepted unchanged draft clears. Text added during pending survives acceptance. Controlled callback; not provider E2E."
+    },
+    {
+      "flow": "new-workspace-request-failure",
+      "result": "excluded-from-composer-proof",
+      "details": "Exact localhost request failed through CDP. Actual workspace failure UI appeared. This is not ComposerBody retention evidence; excluded from public whitelist."
+    }
+  ],
+  "realProviderAuthenticationTested": false,
+  "productionStateChanged": false,
+  "normalChromiumSandbox": true
+}
