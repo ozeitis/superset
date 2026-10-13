@@ -1,5 +1,4 @@
 {
-  "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533",
   "inputMethod": "CDP Input.dispatchMouseEvent, Input.insertText, Input.dispatchKeyEvent; no DOM property assignment used for interactions. APIs used only to seed synthetic project/workspace and inspect persisted results.",
   "results": [
     {
@@ -46,9 +45,20 @@
       "flow": "new-workspace-request-failure",
       "result": "excluded-from-composer-proof",
       "details": "Exact localhost request failed through CDP. Actual workspace failure UI appeared. This is not ComposerBody retention evidence; excluded from public whitelist."
+    },
+    {
+      "flow": "composer-history-during-pending-send",
+      "result": "passed-component-demo",
+      "details": "Controlled async acceptance of the original send does not discard the newer draft temporarily hidden by history recall. ArrowDown restores it, with exactly one submission. Actual PromptInput/ComposerBody and real browser keyboard input; not provider E2E.",
+      "componentFix": "96d673db9ae005fb4c82c9933aede913def9514c",
+      "captureHeads": [
+        "8185d37fc7a761f4b7e54221507d713d88ee1dc0",
+        "9493b1a11c472d1f9cdbfbb1461d11eb6a9a2e31"
+      ]
     }
   ],
   "realProviderAuthenticationTested": false,
   "productionStateChanged": false,
-  "normalChromiumSandbox": true
+  "normalChromiumSandbox": true,
+  "initialElectronRecordingHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
 }

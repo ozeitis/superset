@@ -1,12 +1,15 @@
 # Account and conversation contribution review
 
-Focused pull requests against `superset-sh/superset`:
+- Terminal account selection: [#8460](https://github.com/superset-sh/superset/pull/8460).
+- Exact ended-session recovery: [#8461](https://github.com/superset-sh/superset/pull/8461).
+- Native ACP accounts: [#8462](https://github.com/superset-sh/superset/pull/8462).
+- Saved native Claude conversations: [#8463](https://github.com/superset-sh/superset/pull/8463).
+- Quota correctness: [#8399](https://github.com/superset-sh/superset/pull/8399), [#8464](https://github.com/superset-sh/superset/pull/8464).
+- Composer acceptance: [#8400](https://github.com/superset-sh/superset/pull/8400).
+- Separate storage migrations: [#8401](https://github.com/superset-sh/superset/pull/8401), [#8402](https://github.com/superset-sh/superset/pull/8402), [#8459](https://github.com/superset-sh/superset/pull/8459).
 
-- Account terminal schema: #8401; terminal selection: #8460; exact ended-session recovery: #8461.
-- Native ACP schema: #8402; native ACP account integration: #8462.
-- Saved native ownership schema: #8459; saved native Claude adoption/resume: #8463.
-- Composer acceptance: #8400; quota refresh ordering: #8399; credential-aware quota caching: #8464.
+`qualification.json` records exact sources, commands and limits. The final integrated suite passes15,920 tests; lint,41 type tasks and17 strict catalogs pass. Real Node/PTY tests pass56 cases, with2 unavailable fish-shell cases skipped.
 
-See `qualification.json` for commands, exact source identities and limits. `ui-manifest.json` and `ui-journeys.json` distinguish actual isolated Electron journeys from component demonstrations. All displayed profiles and histories are synthetic. No authenticated provider replay is claimed. No production app or running user session was stopped for these checks.
+`ui-manifest.json` and `ui-journeys.json` distinguish initial isolated Electron journeys from later component demonstrations. All accounts and histories shown are synthetic. The history GIF uses real PromptInput/ComposerBody with a controlled callback; no authenticated provider replay is claimed.
 
-Evidence assets are kept on this documentation branch, outside source PR diffs. Hosted workflows require maintainer approval for this first-contributor set; local checks are not hosted CI.
+Hosted CI requires maintainer approval. Evidence binaries stay on this documentation branch, outside source PR diffs. T3V2/Codex history adoption and personal menu-bar/packaging changes are outside these PRs.

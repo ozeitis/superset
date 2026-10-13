@@ -1,15 +1,15 @@
 {
   "checkedAt": "2026-10-13",
   "officialBase": "4c69087e4ae2314b322692da0603cadf98270b84",
-  "currentMainCompatibility": "9e58bdbad216bda9767717fdfcb289f42091e288; final publication heads checked separately",
-  "integratedHead": "8202fc27179b55978dc9ab1984061f68ca4dedad",
+  "currentMainCompatibility": "9e58bdbad216bda9767717fdfcb289f42091e288; integrated and tested; all10 publication heads merge cleanly",
+  "integratedHead": "5a071e5645e9d124609c9d24e77f1c05bef22917",
   "platform": "macOS arm64; Node24.21.0; Bun1.4.2 frozen install, upstream-CI Bun canary for tests",
   "commands": [
     {
       "command": "bun run test -- --force",
       "passedTasks": 29,
       "totalTasks": 29,
-      "passedTests": 15883,
+      "passedTests": 15920,
       "failedTests": 0,
       "skipped": 4,
       "todo": 8
@@ -25,10 +25,15 @@
     },
     {
       "command": "bun x turbo test:integration:terminal --filter=@superset/host-service --concurrency=1",
-      "passed": 53,
+      "passed": 56,
       "failed": 0,
       "skippedMissingFishShell": 2,
-      "testedImplementationHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
+      "testedImplementationHead": "9493b1a11c472d1f9cdbfbb1461d11eb6a9a2e31"
+    },
+    {
+      "command": "bun run check:i18n",
+      "passed": true,
+      "strictCatalogs": 17
     }
   ],
   "scope": [
@@ -36,7 +41,7 @@
     "The final stack includes the real-UI unique-header-key correction and saved-adoption DB revision regression.",
     "Unit, real SQLite, component and real terminal tests use disposable task state. Authenticated provider replay is not claimed.",
     "No timeout increases or assertion changes were used to obtain passing results.",
-    "Final integrated head adds only review-requested regression tests after the recorded UI and real terminal implementation head."
+    "Reviewed followups cover pending-send history/storage, restart identity comparison, lost replies, right-area focus, hook attribution, selected-profile hook setup, queue pauses, native discovery and rejected-target cleanup."
   ],
   "limits": [
     "Two real-provider chat-runtime cases were skipped. No real multi-account provider replay is claimed.",
@@ -45,5 +50,27 @@
     "Dependent PRs include prerequisite commits until their prerequisites merge.",
     "Saved-history adoption in this set is native Claude only. T3V2/Codex import, independent Codex-home recovery and terminal-to-ACP conversion are outside this set."
   ],
-  "uiImplementationHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
+  "uiImplementationHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533; initial isolated Electron journeys; later component recording is separately scoped in ui-manifest.json",
+  "priorRunFindings": [
+    {
+      "issue": "Unchanged upstream PR-history test assumes distinct Date.now timestamps.",
+      "evidence": "Controlled equal timestamps reproduce [101,102]; distinct timestamps pass. Actual timestamps of the earlier failed standard run were not retained. Source/test byte-identical to official main. Final normal standard run passes without changing that runtime or test."
+    },
+    {
+      "issue": "New history test needed explicit caret setup across the full chat-ui package.",
+      "evidence": "Full package22 pass; reverting reset placement still reproduces draft loss,21pass1fail. No timeout/assertion weakened."
+    }
+  ],
+  "publishedHeads": {
+    "8399": "793ef88292f90aa29846e9a0a0956d3f0ca6877f",
+    "8400": "c942bf98e010f2586d2ef1a7a9aa87e7b9ac9c8e",
+    "8401": "f2b62351239f76aae4ccabba424b07c898368243",
+    "8402": "31343802d56b2df25588f2c11ba7820e8b3e116f",
+    "8459": "57a5dee48bf7736771cf336f8dd1b51f4d6665f8",
+    "8460": "7504093b6beb2a9c4d3c9890f1aae8e7816019dd",
+    "8461": "eb2e3cf0368f04a199673cd9914a5a65d12539f0",
+    "8462": "7a2de9dd60db3aae6c35a9e8c7efba216640c5d4",
+    "8463": "144cab9f2bb25ff36b124121c7adb81e09801431",
+    "8464": "b19e0e3069e95c27b91270d3a60ec142589f948d"
+  }
 }

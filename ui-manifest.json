@@ -1,114 +1,197 @@
 {
-  "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533",
   "allDataSynthetic": true,
   "assets": [
     {
       "file": "terminal-account-choice.png",
       "sha256": "0c1bdc65b047de6a35c5026e2342eadd369a207daad739df213170fd8564af87",
       "bytes": 32777,
-      "scope": "Actual isolated Electron account-terminal picker. Secondary synthetic login selected."
+      "scope": "Actual isolated Electron account-terminal picker. Secondary synthetic login selected.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "native-chat-account-choice.png",
       "sha256": "282932cb552fe7746e3dfc735e253a3c9ef011b841f820d9e682daa3e1a031fd",
       "bytes": 30619,
-      "scope": "Actual isolated Electron native-chat account picker. Synthetic login. Native start remains subject to upstream feature flag."
+      "scope": "Actual isolated Electron native-chat account picker. Synthetic login. Native start remains subject to upstream feature flag.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "exact-resume-secondary-account.png",
       "sha256": "96baca27edf83b6a07a5dc658f582cb1713dfa0587d64050a63590d6a9e34905",
       "bytes": 45141,
-      "scope": "Actual isolated Electron exact native UUID and another-account dialog. Normal-exit/background guard visible. No live account transfer."
+      "scope": "Actual isolated Electron exact native UUID and another-account dialog. Normal-exit/background guard visible. No live account transfer.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "saved-discovery-after.png",
       "sha256": "8beda8a4b5035ce907bc1df33de6cd065a678e1933d70c599bc44c2d03bc0cfe",
       "bytes": 40979,
-      "scope": "Actual isolated Electron native Claude history discovery in the synthetic private workspace."
+      "scope": "Actual isolated Electron native Claude history discovery in the synthetic private workspace.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "saved-exit-confirmation-required.png",
       "sha256": "3a926065b1d9550c11d26ce66d66bac6f99051f7bfad2dd41bcfe4f68b7aa9d5",
       "bytes": 47423,
-      "scope": "Actual isolated Electron first adoption requires the original-session exit confirmation."
+      "scope": "Actual isolated Electron first adoption requires the original-session exit confirmation.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "saved-first-adoption-ready.png",
       "sha256": "c909a73f17758f499ffb2a3b45eb232aab71341903702acac9543df5a174d9ef",
       "bytes": 47637,
-      "scope": "Actual isolated Electron selected native UUID and confirmed first adoption."
+      "scope": "Actual isolated Electron selected native UUID and confirmed first adoption.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "saved-first-adoption-opened.png",
       "sha256": "bb9af031d27eecf06521f8380d5dfb5c7ef106c256a92ab010ba45f03f492486",
       "bytes": 71590,
-      "scope": "Actual isolated Electron first adoption opened a task terminal. CLI is disconnected refusal shim; not provider replay proof."
+      "scope": "Actual isolated Electron first adoption opened a task terminal. CLI is disconnected refusal shim; not provider replay proof.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "saved-open-existing-terminal.png",
       "sha256": "bd06ad854d4ebccb788001dba3ce53993a2fb013b646504dc7f8b356eb196e95",
       "bytes": 41319,
-      "scope": "Actual isolated Electron later open offers existing terminal; diagnostics confirm same terminal ID and unchanged binding count."
+      "scope": "Actual isolated Electron later open offers existing terminal; diagnostics confirm same terminal ID and unchanged binding count.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "account-selection.gif",
       "sha256": "104d71f1f1d250e78764c794818f328b4173b953dfa628f76647579da3ae51fd",
       "bytes": 118801,
-      "scope": "Actual isolated Electron renderer recording: terminal/native account choices and gated native refusal; only sanitized later frames. Idle gaps capped at1.2s."
+      "scope": "Actual isolated Electron renderer recording: terminal/native account choices and gated native refusal; only sanitized later frames. Idle gaps capped at1.2s.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "saved-flow-after.gif",
       "sha256": "3a18f72184d9488c5af33530ea771289270a18897208037504622881b74f0d96",
       "bytes": 133457,
-      "scope": "Actual isolated Electron renderer recording: fresh native Claude adoption, exact binding, later existing-terminal focus. Disconnected synthetic CLI; idle gaps capped at1.2s."
+      "scope": "Actual isolated Electron renderer recording: fresh native Claude adoption, exact binding, later existing-terminal focus. Disconnected synthetic CLI; idle gaps capped at1.2s.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "composer-component-before.png",
       "sha256": "2c7afbb7e402871be356d3565591ff93eced9707ab8c72f1901c4ac4a6fdbc3a",
       "bytes": 32678,
-      "scope": "Component demonstration only: actual PromptInput/ComposerBody, real Lexical input, controlled async callback. Original draft before submit."
+      "scope": "Component demonstration only: actual PromptInput/ComposerBody, real Lexical input, controlled async callback. Original draft before submit.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "composer-component-pending.png",
       "sha256": "b93d03589690121e26d3004958892ec844d396c65b47406eae0c124601495d3f",
       "bytes": 34027,
-      "scope": "Component demonstration only: actual composer retains draft and disables duplicate submit while pending."
+      "scope": "Component demonstration only: actual composer retains draft and disables duplicate submit while pending.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "composer-component-rejected-retained.png",
       "sha256": "75b1fc6080a79d1100fd5d68b639df3a43b94a52121cc23068df647cc94c1fef",
       "bytes": 33929,
-      "scope": "Component demonstration only: callback resolves false; exact draft remains."
+      "scope": "Component demonstration only: callback resolves false; exact draft remains.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "composer-component-accepted-cleared.png",
       "sha256": "e6818f31fce8a2d3851c06286487136a5509d2c6467d9a613a252370b5d51841",
       "bytes": 30721,
-      "scope": "Component demonstration only: callback accepts unchanged draft; editor clears."
+      "scope": "Component demonstration only: callback accepts unchanged draft; editor clears.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "composer-component-edited-pending.png",
       "sha256": "0390c0983dce2e72f9ffa55e35742da6992a57d2c8a939065ce4f5903644dd44",
       "bytes": 36018,
-      "scope": "Component demonstration only: real user typing continues while the original submit is pending."
+      "scope": "Component demonstration only: real user typing continues while the original submit is pending.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "composer-component-pending-edit-retained.png",
       "sha256": "c7f2e7ebedced953275419dd81aa06b2fe1e3027ffd0990b3b676556252cf58f",
       "bytes": 34968,
-      "scope": "Component demonstration only: accepting the earlier submit does not erase text typed while it was pending."
+      "scope": "Component demonstration only: accepting the earlier submit does not erase text typed while it was pending.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "composer-component.gif",
       "sha256": "d69b90905a0e0691d3ca9c4d2d9453b9b85bb7c3e789ae2ba80b53f4516b95da",
       "bytes": 117570,
-      "scope": "Actual component renderer recording: real Lexical input, pending, false rejection, retry and accepted clearing. Controlled callback; not provider E2E. Idle gaps trimmed."
+      "scope": "Actual component renderer recording: real Lexical input, pending, false rejection, retry and accepted clearing. Controlled callback; not provider E2E. Idle gaps trimmed.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
     },
     {
       "file": "composer-edited-pending.gif",
       "sha256": "a44fe0cd7a29446be6a0807a57a89de5d82091a9c8abbe3965c62a6cb05bc1f5",
       "bytes": 70008,
-      "scope": "Actual component renderer recording: new text typed while pending survives acceptance. Controlled callback; not provider E2E. Idle gaps trimmed."
+      "scope": "Actual component renderer recording: new text typed while pending survives acceptance. Controlled callback; not provider E2E. Idle gaps trimmed.",
+      "sourceHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533"
+    },
+    {
+      "file": "composer-history-01-pending.png",
+      "sha256": "efdebec3b6be72dceaf5a05116c44e399f24a8f1e2b0887eb4c887b14bbda702",
+      "bytes": 49682,
+      "scope": "Actual PromptInput/ComposerBody component demonstration: history navigation preserves the newer draft after an older send is accepted. Controlled callback; no provider connected.",
+      "componentFix": "96d673db9ae005fb4c82c9933aede913def9514c",
+      "captureHeads": [
+        "8185d37fc7a761f4b7e54221507d713d88ee1dc0",
+        "9493b1a11c472d1f9cdbfbb1461d11eb6a9a2e31"
+      ]
+    },
+    {
+      "file": "composer-history-02-newer-draft.png",
+      "sha256": "feccc7f4715d9a588b4e1f8d492d05c284fa7d81c2caee21209502f5b5676c3e",
+      "bytes": 49284,
+      "scope": "Actual PromptInput/ComposerBody component demonstration: history navigation preserves the newer draft after an older send is accepted. Controlled callback; no provider connected.",
+      "componentFix": "96d673db9ae005fb4c82c9933aede913def9514c",
+      "captureHeads": [
+        "8185d37fc7a761f4b7e54221507d713d88ee1dc0",
+        "9493b1a11c472d1f9cdbfbb1461d11eb6a9a2e31"
+      ]
+    },
+    {
+      "file": "composer-history-03-recalled.png",
+      "sha256": "fb2062d362f7aed37db8384a94731fbc8950e9649f4f3bb6dc6306d003a068c8",
+      "bytes": 49142,
+      "scope": "Actual PromptInput/ComposerBody component demonstration: history navigation preserves the newer draft after an older send is accepted. Controlled callback; no provider connected.",
+      "componentFix": "96d673db9ae005fb4c82c9933aede913def9514c",
+      "captureHeads": [
+        "8185d37fc7a761f4b7e54221507d713d88ee1dc0",
+        "9493b1a11c472d1f9cdbfbb1461d11eb6a9a2e31"
+      ]
+    },
+    {
+      "file": "composer-history-04-accepted.png",
+      "sha256": "424020ea008e53a23d5b316e7bf650d125d32b0c255ca39277b393010b679ae4",
+      "bytes": 49151,
+      "scope": "Actual PromptInput/ComposerBody component demonstration: history navigation preserves the newer draft after an older send is accepted. Controlled callback; no provider connected.",
+      "componentFix": "96d673db9ae005fb4c82c9933aede913def9514c",
+      "captureHeads": [
+        "8185d37fc7a761f4b7e54221507d713d88ee1dc0",
+        "9493b1a11c472d1f9cdbfbb1461d11eb6a9a2e31"
+      ]
+    },
+    {
+      "file": "composer-history-05-draft-restored.png",
+      "sha256": "3d593d248fc16233c998378aea5da3edc768af88c540709f70e18b734c329092",
+      "bytes": 49491,
+      "scope": "Actual PromptInput/ComposerBody component demonstration: history navigation preserves the newer draft after an older send is accepted. Controlled callback; no provider connected.",
+      "componentFix": "96d673db9ae005fb4c82c9933aede913def9514c",
+      "captureHeads": [
+        "8185d37fc7a761f4b7e54221507d713d88ee1dc0",
+        "9493b1a11c472d1f9cdbfbb1461d11eb6a9a2e31"
+      ]
+    },
+    {
+      "file": "composer-history-component.gif",
+      "sha256": "b26f0855cb141f187b95ef1914c158d2f8c62ab6b094931a1bae5429dbafebd4",
+      "bytes": 135114,
+      "scope": "Actual PromptInput/ComposerBody component demonstration: history navigation preserves the newer draft after an older send is accepted. Controlled callback; no provider connected.",
+      "componentFix": "96d673db9ae005fb4c82c9933aede913def9514c",
+      "captureHeads": [
+        "8185d37fc7a761f4b7e54221507d713d88ee1dc0",
+        "9493b1a11c472d1f9cdbfbb1461d11eb6a9a2e31"
+      ]
     }
   ],
   "limits": [
@@ -116,5 +199,219 @@
     "Native ACP chat respects upstream acp-chat feature flag.",
     "No production app was installed, stopped, restarted or altered.",
     "Composer visual proof is a component demonstration; genuine before/after regression tests cover submission acceptance. New-workspace failure screenshots are excluded."
+  ],
+  "initialElectronRecordingHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533",
+  "componentReviewFix": "96d673db9ae005fb4c82c9933aede913def9514c",
+  "reviewComponentFilesStillMatchFinalIntegration": [
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/PromptInput.stories.tsx",
+      "gitBlob": "5c2fcfc5a8a3cee6e777530a97e765335192dc31",
+      "sha256": "0c98aa68d162829804b43f6e9df897d5f4e54b064ee6bd0cf30446e43650f75d"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/PromptInput.tsx",
+      "gitBlob": "bc2e2796a799c97c48139baaf3f983b1267fa578",
+      "sha256": "ff3e1459cc3fdc15de328f0cb7cb79334d36d0a697017ecbdb32ce6fe836d1b7"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/AttachmentPills/AttachmentPills.tsx",
+      "gitBlob": "0642cb0fc1120d237bd7bcdb46d98199de2e5f72",
+      "sha256": "bfa5814260283f49ebf2f0b70d9686e87dbc1d0df609f1827abde81eed95100f"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/AttachmentPills/components/RemoveButton/RemoveButton.tsx",
+      "gitBlob": "93aefaa3dcbf72e082e959ec1e2ee2c206a9e409",
+      "sha256": "c758825de0a3ea598d06850ce67f17d77ac69b39b0ccb4ff0f106325029da932"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/AttachmentPills/components/RemoveButton/index.ts",
+      "gitBlob": "58cc9be4c51ab4cec6f5606ab1f39287ec4dffe6",
+      "sha256": "7e5e1af638e4e876791ebe10e92ca886d787b5e2ee22d09af8233648b954f00f"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/AttachmentPills/index.ts",
+      "gitBlob": "387fa9c3f3a29c5b888217f5877313dca13d4cfa",
+      "sha256": "ba8a2b78a5ae6bc4f8adf1e438194549079d86c02d5486042970276c7221e85c"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/CommandMenu/CommandMenu.tsx",
+      "gitBlob": "4a33f7ed5123057ce28a0b608584e074423eee55",
+      "sha256": "e6a043d6e040fab985337020a6a0bb43322bbedb92c614ce5aee994e8c798b2a"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/CommandMenu/index.ts",
+      "gitBlob": "a1e1c89452d3eccb2fe767663b31030a5105b375",
+      "sha256": "814d1e970278614fd59c31ccca1b8727c727fadc297514d9b68306b503f211ae"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/ComposerBody/ComposerBody.tsx",
+      "gitBlob": "11994a0fc87686739d25dc5d4560bc0ba222c19f",
+      "sha256": "ddb496e511b9c54e6657a50e3d220865087d85d273efc1353c32d2bfc1787521"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/ComposerBody/index.ts",
+      "gitBlob": "ec8b35ea8b60681b6bc4fe513c5e853ba2b67f5a",
+      "sha256": "52a1d6a2c5412a4b52a8f03c1134f0f93bf5cae9fc81223db6347e20a1162a69"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/ComposerPanel/ComposerPanel.tsx",
+      "gitBlob": "4920518fba0e3b64458c528002f78966b5df58be",
+      "sha256": "934dac74c0b2bc02d85015b072c48dcc77e7d90ffebc77a16b6b450fe10eb304"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/ComposerPanel/index.ts",
+      "gitBlob": "7e7c8c7d01f8bf9366e79959c9aa2d22dfae4c43",
+      "sha256": "b142d5546607277ce1c283e286335df12df4a0b851a54ba9a2944504f7bb2da2"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/ContextButton/ContextButton.tsx",
+      "gitBlob": "f5ea5134f9947d43f4dc0ea29d8260656635fdec",
+      "sha256": "60824c58e485abb33091f8edebb3091d864ddc6d246a57b0629755aa876bc304"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/ContextButton/index.ts",
+      "gitBlob": "736307a5e03164f9bc3e62c63798af9c6013ecaa",
+      "sha256": "b3d197a130d62800b24a6da10a639ff945bbd8c9cf736b291820d4332cb2a4db"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/DictationBar/DictationBar.tsx",
+      "gitBlob": "e0c9a20da6f16b8d124da29209b615f66cb994ee",
+      "sha256": "0641bf956265c53912372a8f583ac8aebd0de4bbc24c35547402dbd1c97c8786"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/DictationBar/index.ts",
+      "gitBlob": "aebe40e898613cf61630e1dd56e037548cb66733",
+      "sha256": "1915371d70043038e4d5c1607d346c5403379478c0639ad6e9ffe073dd4da67b"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/MentionMenu/MentionMenu.tsx",
+      "gitBlob": "d58bcdb94857faf774edf9646ca51e962dd7a81a",
+      "sha256": "153e7937c6f34143e63a7364670ab6e5eda522d081dec399e22d410d140edd25"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/components/MentionMenu/index.ts",
+      "gitBlob": "ce03cbd6e26f3f9c3f1f027729be2d3a23072d91",
+      "sha256": "7a6a16daec18e882f3cb2c6b397535da4a0d2e28516fcc1fa44ce696f112a5ab"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/hooks/useDictation/index.ts",
+      "gitBlob": "af16bc7009f70b0cfef9a459f9cfcb48cc105951",
+      "sha256": "1d4568a1f519df0e6c671d3afbca9d45257782660cc825a7b05f9136fee36f00"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/hooks/useDictation/useDictation.ts",
+      "gitBlob": "908a3c6f32234bba7ce3d0956dc585134f6fcfe8",
+      "sha256": "16e48a64dc85d030ff9d20daa256601091dffac7693dd86f1a1cb28816f13d5c"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/hooks/useMentionSources/index.ts",
+      "gitBlob": "b60ff91cec92a5c74c9847abefdf23fe87a73dcc",
+      "sha256": "6155ccd6dd04c7b8092df0ba60a716057c20988c6345d3257808ad997de287f8"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/hooks/useMentionSources/useMentionSources.ts",
+      "gitBlob": "ec3a258369f4bf890f8195b3edfef22403666e06",
+      "sha256": "d8ba42c14f03ee815d4577d2aaf39898ec3778f0f4dda5923ba0f197edf23ed6"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/index.ts",
+      "gitBlob": "70b0c4f80b1d3ca2a3078365e6d67c293bd596f4",
+      "sha256": "d58c7724e3af673f825c55369311ca73ab070657a1d2f2167c2329b4145b1f07"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/nodes/mentionChipNode/index.ts",
+      "gitBlob": "8c340ff00dba211f19cbb6721070ccf8e288def8",
+      "sha256": "1bc8be9717b6539fa336c7e8fc061527f72c961dacff7e6cb4949bedb2aae021"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/nodes/mentionChipNode/mentionChipNode.tsx",
+      "gitBlob": "8f0e8623324d248b8c5198d3d7ce16e86f3efa8d",
+      "sha256": "66af2acaf099d9cfe091b9786717bdad6f0701e69d2f7438293ed5e2837d8fbe"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/prompt-input.css",
+      "gitBlob": "f86b2b26699ec6e45918ca2263a69ef67b1a14f3",
+      "sha256": "470bec6dadb3ab88a350979e0d862f7eab8fac6642c692af37267a870f1a7868"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/types.ts",
+      "gitBlob": "3b49afc393943dd62d5ca5299b1534a8ed336fc5",
+      "sha256": "708108cf0afbb195883d7e90fd65fb60a12e92258d9af706030561c74aa7ebf6"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/draftEdit/draftEdit.test.ts",
+      "gitBlob": "67856f6a5bcb640443ef4395c1f65862a82d79f5",
+      "sha256": "81fb512f8df1c32ebd1da59a3096c1ac572063a7f4d9a5f332fad6f62665780c"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/draftEdit/draftEdit.ts",
+      "gitBlob": "7da167c50542e97a390568be67bac8f0bb7702a1",
+      "sha256": "f5493bd96736bb398922c7484873b5562cc451ca7243570852eb4b1ed31ddd67"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/draftEdit/index.ts",
+      "gitBlob": "715cfd1e7fbd6da76852c6e2b2ccdb6e8cdfcfd2",
+      "sha256": "c11c554c0412a58a280d108d62e116ac971254329b3cd21ee796aac91284f494"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/historyNavigation/historyNavigation.test.ts",
+      "gitBlob": "797bcabf36775162e1cb906768abf98b4c758e62",
+      "sha256": "a728af3df2d0408cfbdfa27ff4248d8fc6ad70527b73730b19c212bb4d9f67ac"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/historyNavigation/historyNavigation.ts",
+      "gitBlob": "d23b679a3c3f7a6fa40554b400614df5ae2cac0f",
+      "sha256": "ace077b3ffad2c12cfdee61d62a50dede409d0e28647d3bc57b1c06a0d005c83"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/historyNavigation/index.ts",
+      "gitBlob": "2822172829a9a4be34974d5d12a8c98f3c249209",
+      "sha256": "92e7327f562b558b0482f8977929b3bd9b4a0853993fbed781700d3779e5ef1d"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/matchToken/index.ts",
+      "gitBlob": "8acaf91e23e49b5d7595a9e1eb6b40b67ec23477",
+      "sha256": "a43973336f0333da006ef954733640aa2637d2cf05ea11e63e691a34c030b030"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/matchToken/matchToken.ts",
+      "gitBlob": "b494f7fafda331850b3f45c4f124e387d6c66c14",
+      "sha256": "97b613616a696a5c8625bed764d0ed009448b1e8ac05c449c7a111679513df44"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/rankCommands/index.ts",
+      "gitBlob": "1552aa6e9851e080cc6080425d66a0805657ed24",
+      "sha256": "7550761cc87a60c03e8fad812fc3686e491052ea6cac71d6bdc16aa0345579b8"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/rankCommands/rankCommands.ts",
+      "gitBlob": "0c5756e8f868a5dbe44120d6ce6923de88a6111f",
+      "sha256": "28530a10bb216958101c4f31f1692e72802eaa9a0f4aed2f18ec613cb073bf14"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/restoreChips/index.ts",
+      "gitBlob": "3a9b7a5522520c5796bece46c9d6018db56f4f7c",
+      "sha256": "cf2c8aa2f1e0f14d5a7e7daa4461ca6cfc2f20bf5b013ebcab07fa8b8ab9c8c9"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/restoreChips/restoreChips.test.ts",
+      "gitBlob": "8d464b5aebae9a376a05a4b1a0dbcf8419035dbf",
+      "sha256": "fe1acface10c35c723724955bd4ebd147d741a17489d53e0ceb150c9f93a6b5a"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/restoreChips/restoreChips.ts",
+      "gitBlob": "12654947d82e6364a77a1293cec7943c82bf6a29",
+      "sha256": "43d3ffb7a4e06f0e528bd808d66719f60041d6f8f4c45b223498c0f793f4a2d0"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/typeaheadOptions/index.ts",
+      "gitBlob": "32c1722232ac5a428f380c2fe2a65b9b58f9f2e1",
+      "sha256": "0b74c914d5c5a465dc312fafd67ee2a4e1145d4fccd6b80b74d6b9282c5d1dc1"
+    },
+    {
+      "path": "packages/chat-ui/src/components/PromptInput/utils/typeaheadOptions/typeaheadOptions.ts",
+      "gitBlob": "13458e35abb5b6f5560070f01a308b8a52c99c41",
+      "sha256": "40275d9da00c1a2a4e73dba3484b3a1fbbf406ae74273fd51fe1171a20e589a6"
+    }
   ]
 }
