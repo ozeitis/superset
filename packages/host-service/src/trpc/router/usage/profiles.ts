@@ -29,7 +29,11 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { resolveAmbientCodexHome } from "@superset/agent-setup";
 import { readProfileFile } from "./profile-file";
-import { QuotaCredentialReadError } from "./quota-credentials";
+import {
+	parseQuotaCredentialJson,
+	QuotaCredentialReadError,
+	readQuotaCredentialFile,
+} from "./quota-credentials";
 
 const execFileAsync = promisify(execFile);
 
@@ -63,6 +67,8 @@ export interface ClaudeProfile {
 }
 
 export interface CodexHome {
+	/** Quota-only discovery retains an unreadable profile; never selectable. */
+	quotaUnavailable?: true;
 	home: string;
 	sourceLabel: string;
 	credentialKind: ProfileCredentialKind;
@@ -302,6 +308,30 @@ export async function readCodexProfileKind(
 	}
 }
 
+async function readCodexQuotaProfileKind(
+	codexHome: string,
+): Promise<Pick<
+	CodexHome,
+	"credentialKind" | "loginFingerprint" | "quotaUnavailable"
+> | null> {
+	const kind = await readCodexProfileKind(codexHome);
+	if (kind) return kind;
+	try {
+		const file = await readQuotaCredentialFile(join(codexHome, "auth.json"));
+		if (!file) return null;
+		// Readable signed-out and unmarked API-key homes remain excluded.
+		// A malformed/unreadable existing auth file gets an unavailable card.
+		parseQuotaCredentialJson(file);
+		return null;
+	} catch {
+		return {
+			credentialKind: "subscription",
+			loginFingerprint: null,
+			quotaUnavailable: true,
+		};
+	}
+}
+
 /**
  * Codex homes: the ambient home (`~/.codex`, or a `CODEX_HOME` the user set
  * themselves — see resolveAmbientCodexHome for why Superset's own injected
@@ -313,9 +343,15 @@ export async function readCodexProfileKind(
  * `selection: null`. It is listed even without an `auth.json` so the
  * add-account poller has a baseline to compare a fresh `codex login` against.
  */
-export async function discoverCodexHomes(): Promise<CodexHome[]> {
+export async function discoverCodexHomes(
+	options: {
+		includeUnavailable?: boolean;
+		candidates?: readonly string[];
+		defaultHome?: string;
+	} = {},
+): Promise<CodexHome[]> {
 	const home = homedir();
-	const defaultHome = resolveAmbientCodexHome(home);
+	const defaultHome = options.defaultHome ?? resolveAmbientCodexHome(home);
 	const defaultKind = (await readCodexProfileKind(defaultHome)) ?? {
 		credentialKind: "subscription" as const,
 		loginFingerprint: null,
@@ -331,12 +367,16 @@ export async function discoverCodexHomes(): Promise<CodexHome[]> {
 		],
 	]);
 
-	const candidates = (await listSubdirectories(home)).filter((path) =>
-		path.slice(home.length + 1).startsWith(".codex"),
-	);
+	const candidates =
+		options.candidates ??
+		(await listSubdirectories(home)).filter((path) =>
+			path.slice(home.length + 1).startsWith(".codex"),
+		);
 	for (const candidate of candidates) {
 		if (homes.has(candidate)) continue;
-		const kind = await readCodexProfileKind(candidate);
+		const kind = await (options.includeUnavailable
+			? readCodexQuotaProfileKind(candidate)
+			: readCodexProfileKind(candidate));
 		if (!kind) continue;
 		homes.set(candidate, {
 			home: candidate,

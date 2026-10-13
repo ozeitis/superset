@@ -137,7 +137,7 @@ function deduplicateCodexAccounts(accounts: UsageAccount[]): UsageAccount[] {
 }
 
 export async function captureCodexQuotaSnapshot(
-	captureHomes = discoverCodexHomes,
+	captureHomes = () => discoverCodexHomes({ includeUnavailable: true }),
 	fetchQuota = fetchCodexSubscriptionQuota,
 ): Promise<QuotaSnapshot<UsageAccount[]>> {
 	let homes: CodexHome[];
@@ -165,6 +165,8 @@ export async function captureCodexQuotaSnapshot(
 				selection: index === 0 ? null : home.home,
 			};
 			try {
+				if (home.quotaUnavailable)
+					return { state: "unavailable" as const, source };
 				return {
 					state: "available" as const,
 					home,
