@@ -1,7 +1,7 @@
 {
   "checkedAt": "2026-10-13",
   "officialBase": "4c69087e4ae2314b322692da0603cadf98270b84",
-  "currentMainCompatibility": "9e58bdbad216bda9767717fdfcb289f42091e288; integrated and tested; all10 publication heads merge cleanly",
+  "currentMainCompatibility": "9e58bdbad216bda9767717fdfcb289f42091e288; integrated and tested; all 10 publication heads merge cleanly",
   "integratedHead": "5a071e5645e9d124609c9d24e77f1c05bef22917",
   "platform": "macOS arm64; Node24.21.0; Bun1.4.2 frozen install, upstream-CI Bun canary for tests",
   "commands": [
@@ -58,7 +58,7 @@
     },
     {
       "issue": "New history test needed explicit caret setup across the full chat-ui package.",
-      "evidence": "Full package22 pass; reverting reset placement still reproduces draft loss,21pass1fail. No timeout/assertion weakened."
+      "evidence": "Full package: 22 pass; reverting reset placement still reproduces draft loss,21 pass, 1 fail. No timeout/assertion weakened."
     }
   ],
   "publishedHeads": {

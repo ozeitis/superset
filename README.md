@@ -8,7 +8,7 @@
 - Composer acceptance: [#8400](https://github.com/superset-sh/superset/pull/8400).
 - Separate storage migrations: [#8401](https://github.com/superset-sh/superset/pull/8401), [#8402](https://github.com/superset-sh/superset/pull/8402), [#8459](https://github.com/superset-sh/superset/pull/8459).
 
-`qualification.json` records exact sources, commands and limits. The final integrated suite passes15,920 tests; lint,41 type tasks and17 strict catalogs pass. Real Node/PTY tests pass56 cases, with2 unavailable fish-shell cases skipped.
+`qualification.json` records exact sources, commands and limits. The final integrated suite passes 15,920 tests; lint, 41 type tasks and 17 strict catalogs pass. Real Node/PTY tests pass 56 cases, with 2 unavailable fish-shell cases skipped.
 
 `ui-manifest.json` and `ui-journeys.json` distinguish initial isolated Electron journeys from later component demonstrations. All accounts and histories shown are synthetic. The history GIF uses real PromptInput/ComposerBody with a controlled callback; no authenticated provider replay is claimed.
 
