@@ -1,0 +1,47 @@
+{
+  "checkedAt": "2026-10-13",
+  "officialBase": "4c69087e4ae2314b322692da0603cadf98270b84",
+  "currentMainCompatibility": "7fb45f7b276417c6363dcad4437e4c8fc28b5e74; all publication heads merge cleanly",
+  "integratedHead": "c0a4699ed5630a01cf3b2bed74da360ff5fb6533",
+  "platform": "macOS arm64; Node24.21.0; Bun1.4.2 frozen install, upstream-CI Bun canary for tests",
+  "commands": [
+    {
+      "command": "bun run test -- --force",
+      "passedTasks": 29,
+      "totalTasks": 29,
+      "passedTests": 15881,
+      "failedTests": 0,
+      "skipped": 4,
+      "todo": 8
+    },
+    {
+      "command": "bun run lint",
+      "passed": true,
+      "checkedFiles": 10211
+    },
+    {
+      "command": "bun run typecheck",
+      "passedTasks": 41,
+      "totalTasks": 41
+    },
+    {
+      "command": "bun x turbo test:integration:terminal --filter=@superset/host-service --concurrency=1",
+      "passed": 53,
+      "failed": 0,
+      "skippedMissingFishShell": 2
+    }
+  ],
+  "scope": [
+    "Integrated terminal/native ACP accounts, exact recovery, saved native Claude, composer, quota refresh ordering and credential-aware quota cache changes.",
+    "The final stack includes the real-UI unique-header-key correction and saved-adoption DB revision regression.",
+    "Unit, real SQLite, component and real terminal tests use disposable task state. Authenticated provider replay is not claimed.",
+    "No timeout increases or assertion changes were used to obtain passing results."
+  ],
+  "limits": [
+    "Two real-provider chat-runtime cases were skipped. No real multi-account provider replay is claimed.",
+    "Local tests are not hosted GitHub CI. First-contributor workflow approval is a maintainer gate.",
+    "Terminal new-launch retries have no durable receipt; exact ended-session recovery has successor receipts.",
+    "Dependent PRs include prerequisite commits until their prerequisites merge.",
+    "Saved-history adoption in this set is native Claude only. T3V2/Codex import, independent Codex-home recovery and terminal-to-ACP conversion are outside this set."
+  ]
+}
