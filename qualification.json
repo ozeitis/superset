@@ -40,7 +40,7 @@
     "Integrated terminal/native ACP accounts, exact recovery, saved native Claude, composer, quota refresh ordering and credential-aware quota cache changes.",
     "The final stack includes the real-UI unique-header-key correction and saved-adoption DB revision regression.",
     "Unit, real SQLite, component and real terminal tests use disposable task state. Authenticated provider replay is not claimed.",
-    "No timeout increases or assertion changes were used to obtain passing results.",
+    "No timeout increases or weakened assertions were used to obtain passing results. The intentional Codex home marker is included in the exact environment assertion.",
     "Reviewed followups cover pending-send history/storage, restart identity comparison, lost replies, right-area focus, hook attribution, selected-profile hook setup, queue pauses, native discovery and rejected-target cleanup."
   ],
   "limits": [
