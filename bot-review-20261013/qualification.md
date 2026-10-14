@@ -1,3 +1,5 @@
+Latest: [final follow-up fixes and qualification](followup-qualification.md). The record below is the earlier tested checkpoint.
+
 # Bot review qualification
 
 All bot notes present at the pre-publication readback were reviewed, including inline threads and review-body-only suggestions. Valid findings have targeted fixes and regression tests. Replies explain retained behavior where a suggestion would weaken identity, recovery or credential correctness. Four other PRs needed no new code; their earlier fixes were checked again.

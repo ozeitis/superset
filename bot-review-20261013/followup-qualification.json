@@ -1,0 +1,161 @@
+{
+  "source": {
+    "testedCommit": "f66866810387e748d87a2029c27d367df933cc75",
+    "publicSnapshot": "e23a030d36914f44c42d8d6d58e164bfa8195bfb",
+    "tree": "537117fc4e4e1620e8e73485bf4f5015b0f63a80",
+    "sameTree": true,
+    "prHeads": {
+      "8400": "28bb0dd6ddbbfb2b297c065c45a2890efcbf17fa",
+      "8462": "1be3b18f41f96f3ee85cad080dc1cb1dc103b9a7"
+    }
+  },
+  "gates": {
+    "quota-followup-full-test": {
+      "exitCode": 0,
+      "head": "f66866810387e748d87a2029c27d367df933cc75",
+      "logSha256": "51d96fa3ca308265519cd5d21995bd206c8b1916acff2abbc0a77a9568de7af9"
+    },
+    "quota-followup-full-types": {
+      "exitCode": 0,
+      "head": "f66866810387e748d87a2029c27d367df933cc75",
+      "logSha256": "3324a1b6f1655b3c30ed93f6bdb7f0badaaac800409acc159c641d7115c320a0"
+    },
+    "quota-followup-full-lint": {
+      "exitCode": 0,
+      "head": "f66866810387e748d87a2029c27d367df933cc75",
+      "logSha256": "760a80c381161b0d2610751a1911b3d5f4e61d7713cb650c1b70e473f9b4d9fb"
+    },
+    "quota-followup-i18n": {
+      "exitCode": 0,
+      "head": "f66866810387e748d87a2029c27d367df933cc75",
+      "logSha256": "37d3fb632b478d40d8f1425cf43a93067fd424155eeafe0a76610d902ef4c3aa"
+    }
+  },
+  "testCounts": {
+    "@superset/cli-framework": {
+      "pass": 73,
+      "fail": 0
+    },
+    "@superset/chat": {
+      "pass": 69,
+      "fail": 0
+    },
+    "@superset/workspace-fs": {
+      "pass": 191,
+      "fail": 0
+    },
+    "@superset/port-scanner": {
+      "pass": 110,
+      "fail": 0
+    },
+    "@superset/host-client": {
+      "pass": 8,
+      "fail": 0
+    },
+    "@superset/chat-runtime": {
+      "pass": 305,
+      "skip": 2,
+      "fail": 0
+    },
+    "@superset/i18n": {
+      "pass": 164,
+      "fail": 0
+    },
+    "@superset/realtime": {
+      "pass": 3,
+      "fail": 0
+    },
+    "@superset/shared": {
+      "pass": 1377,
+      "fail": 0
+    },
+    "@superset/agent-setup": {
+      "pass": 382,
+      "skip": 1,
+      "fail": 0
+    },
+    "@superset/pty-daemon": {
+      "pass": 189,
+      "fail": 0
+    },
+    "@superset/email": {
+      "pass": 5,
+      "fail": 0
+    },
+    "@superset/chat-ui": {
+      "pass": 23,
+      "fail": 0
+    },
+    "@superset/panes": {
+      "pass": 121,
+      "fail": 0
+    },
+    "@superset/auth": {
+      "pass": 55,
+      "fail": 0
+    },
+    "@superset/relay": {
+      "pass": 13,
+      "fail": 0
+    },
+    "@superset/trpc": {
+      "pass": 621,
+      "fail": 0
+    },
+    "@superset/cloud-client": {
+      "pass": 27,
+      "fail": 0
+    },
+    "@superset/marketing": {
+      "pass": 160,
+      "fail": 0
+    },
+    "@superset/sandbox": {
+      "pass": 16,
+      "fail": 0
+    },
+    "@superset/api": {
+      "pass": 239,
+      "fail": 0
+    },
+    "@superset/workspace-client": {
+      "pass": 29,
+      "fail": 0
+    },
+    "@superset/mobile": {
+      "pass": 224,
+      "fail": 0
+    },
+    "@superset/cli": {
+      "pass": 423,
+      "fail": 0
+    },
+    "@superset/host-service": {
+      "pass": 2851,
+      "todo": 8,
+      "fail": 0
+    },
+    "@superset/web": {
+      "pass": 55,
+      "fail": 0
+    },
+    "@superset/desktop": {
+      "pass": 8373,
+      "skip": 1,
+      "fail": 0
+    }
+  },
+  "newFindings": [
+    {
+      "pr": 8400,
+      "comment": 4267148094,
+      "disposition": "fixed"
+    },
+    {
+      "pr": 8462,
+      "comment": 4267160362,
+      "disposition": "fixed"
+    }
+  ],
+  "validationScope": "Isolated source/component/Node-PTY qualification; no authenticated route/live-provider replay or installed-app change. Hosted workflows still require maintainer approval."
+}
