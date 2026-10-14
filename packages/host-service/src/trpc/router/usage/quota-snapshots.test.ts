@@ -5,6 +5,7 @@ import { join } from "node:path";
 import {
 	captureClaudeCredentialSlots,
 	captureClaudeQuotaSnapshot,
+	readDefaultQuotaCredential,
 	readProfileCredential,
 } from "./claude";
 import { captureCodexQuotaSnapshot } from "./codex";
@@ -383,4 +384,113 @@ test("API-billed Claude profiles skip a matching explicit credential reader", as
 	expect(
 		(await snapshot.load()).map((account) => account.credentialKind),
 	).toEqual(["api_key"]);
+});
+
+test("optional Claude display metadata cannot hide a readable credential", async () => {
+	const credential = {
+		accessToken: "synthetic-default",
+		expiresAt: null,
+		refreshTokenExpiresAt: null,
+		subscriptionType: null,
+		accountKey: "default",
+		sourceLabel: "test",
+		selection: null,
+	};
+	const result = await readDefaultQuotaCredential(
+		async () => [credential],
+		async () => {
+			throw new Error("metadata changed");
+		},
+	);
+	expect(result).toEqual({ ...credential, email: null });
+});
+
+test("Claude display-only email changes do not invalidate captured credentials", async () => {
+	const credential = {
+		accessToken: "synthetic-default",
+		expiresAt: null,
+		refreshTokenExpiresAt: null,
+		subscriptionType: null,
+		accountKey: "default",
+		sourceLabel: "test",
+		selection: null,
+	};
+	const first = await captureClaudeQuotaSnapshot(
+		async () => ({
+			credentials: [{ ...credential, email: "a@example.test" }],
+			signedOutProfiles: [],
+			apiProfiles: [],
+		}),
+		async () => quota,
+	);
+	const next = await captureClaudeQuotaSnapshot(
+		async () => ({
+			credentials: [{ ...credential, email: null }],
+			signedOutProfiles: [],
+			apiProfiles: [],
+		}),
+		async () => quota,
+	);
+	expect(first.revision).toBe(next.revision);
+});
+
+test("default Claude credential failures remain strict despite optional metadata", async () => {
+	await expect(
+		readDefaultQuotaCredential(
+			async () => {
+				throw new Error("credential unreadable");
+			},
+			async () => "a@example.test",
+		),
+	).rejects.toThrow("credential unreadable");
+});
+
+test("Codex null account ID is absent while non-string IDs remain unavailable", async () => {
+	const home = await directory();
+	const homes: CodexHome[] = [
+		{
+			home,
+			sourceLabel: "test",
+			credentialKind: "subscription",
+			loginFingerprint: null,
+		},
+	];
+	const headers: Array<string | undefined> = [];
+	const fetchQuota = async (_token: string, account?: string) => {
+		headers.push(account);
+		return {
+			email: "a@example.test",
+			plan: "test",
+			status: "ok" as const,
+			statusDetail: null,
+			windows: [],
+			creditsBalance: null,
+		};
+	};
+	await writeFile(
+		join(home, "auth.json"),
+		JSON.stringify({ tokens: { access_token: "synthetic", account_id: null } }),
+	);
+	expect(
+		(
+			await (
+				await captureCodexQuotaSnapshot(async () => homes, fetchQuota)
+			).load()
+		)[0]?.status,
+	).toBe("ok");
+	expect(headers).toEqual([undefined]);
+	for (const account_id of [42, {}, []]) {
+		await writeFile(
+			join(home, "auth.json"),
+			JSON.stringify({ tokens: { access_token: "synthetic", account_id } }),
+		);
+		expect(
+			(
+				await (
+					await captureCodexQuotaSnapshot(async () => homes, fetchQuota)
+				).load()
+			)[0]?.status,
+		).toBe("unavailable");
+	}
+	expect(headers).toEqual([undefined]);
 });

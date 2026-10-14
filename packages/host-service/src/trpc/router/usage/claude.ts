@@ -351,6 +351,20 @@ export async function captureClaudeCredentialSlots(
 	};
 }
 
+export async function readDefaultQuotaCredential(
+	readCredentials: () => Promise<Array<ClaudeOauthCredential | null>>,
+	readEmail = readDefaultLoginEmail,
+): Promise<ClaudeOauthCredential | null> {
+	const [email, credentials] = await Promise.all([
+		readEmail(true).catch(() => null),
+		readCredentials(),
+	]);
+	const credential = pickFreshest(credentials);
+	return credential
+		? { ...credential, email: credential.email ?? email }
+		: null;
+}
+
 async function discoverClaudeCredentials(
 	strict = false,
 ): Promise<ClaudeQuotaInputs> {
@@ -399,21 +413,18 @@ async function discoverClaudeCredentials(
 						sourceLabel: "Default Claude login",
 						selection: null,
 					},
-					read: async () => {
-						const [email, keychain, files] = await Promise.all([
-							readDefaultLoginEmail(true),
-							readKeychainCredential(true),
-							Promise.all(
-								defaultCandidates.map(({ path, sourceLabel }) =>
-									readCredentialFile(path, sourceLabel, null, true),
+					read: () =>
+						readDefaultQuotaCredential(async () => {
+							const [keychain, files] = await Promise.all([
+								readKeychainCredential(true),
+								Promise.all(
+									defaultCandidates.map(({ path, sourceLabel }) =>
+										readCredentialFile(path, sourceLabel, null, true),
+									),
 								),
-							),
-						]);
-						const credential = pickFreshest([keychain, ...files]);
-						return credential
-							? { ...credential, email: credential.email ?? email }
-							: null;
-					},
+							]);
+							return [keychain, ...files];
+						}),
 				},
 				...explicitCandidates.map(({ path, sourceLabel, configDir }) => ({
 					source: {
@@ -720,7 +731,12 @@ export async function captureClaudeQuotaSnapshot(
 	const revision = createHash("sha256")
 		.update(
 			JSON.stringify([
-				snapshot,
+				{
+					...snapshot,
+					credentials: snapshot.credentials.map(
+						({ email: _email, ...credential }) => credential,
+					),
+				},
 				snapshot.credentials.map((credential) =>
 					classifyLapsedToken(credential),
 				),

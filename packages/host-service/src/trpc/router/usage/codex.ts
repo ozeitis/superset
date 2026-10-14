@@ -232,13 +232,13 @@ async function readCodexQuotaAuth(home: string): Promise<CodexAuthFile | null> {
 	if (
 		typeof tokens.access_token !== "string" ||
 		!tokens.access_token.trim() ||
-		(tokens.account_id !== undefined && typeof tokens.account_id !== "string")
+		(tokens.account_id != null && typeof tokens.account_id !== "string")
 	)
 		throw new QuotaCredentialReadError();
 	return {
 		tokens: {
 			access_token: tokens.access_token,
-			account_id: tokens.account_id as string | undefined,
+			account_id: (tokens.account_id ?? undefined) as string | undefined,
 		},
 	};
 }
