@@ -1,0 +1,161 @@
+{
+  "upstream": "cc31d024c8f266caad52ea15d14311f5d22ba5cc",
+  "testedIntegrationCommit": "a3e18f166ed6ac68f57428097c584401da9b0288",
+  "publicSourceSnapshot": "70b27f8f6527760815bac1ed96517f5deb906b65",
+  "identicalSourceTree": "7ce0ddb2288d935e10e99df044f0d2edfb31ebe1",
+  "prHeads": {
+    "8400": "6d1ded07659dd543d147b47b833934ba05695b87",
+    "8460": "7b1ddf1a2aa41f90abf6ca2cb039f5c7bfd4d66e",
+    "8461": "0ce9f3949686d0f2a0284c1fbe3890360e934a38",
+    "8462": "e098cb8091b74ec99abd8eb0ec8e568c543e7898",
+    "8463": "88be4d64be272645b7f69c37b404f07e59509343",
+    "8464": "704e1ad1d2d7f06f689de3eb8715a8a30c00bc28"
+  },
+  "gates": {
+    "quota-full-test-complete": {
+      "head": "a3e18f166ed6ac68f57428097c584401da9b0288",
+      "exitCode": 0,
+      "logSha256": "83410cd4ea2adac9fa3f5dce18480144e737585869ea5d5f1ee0fe2de8a3dd1a"
+    },
+    "quota-full-types-qualified": {
+      "head": "a3e18f166ed6ac68f57428097c584401da9b0288",
+      "exitCode": 0,
+      "logSha256": "47eb915ba44499ec29c54430fe0a1de077ca1dd8288b78b40822bc5383e55242"
+    },
+    "quota-full-lint-qualified": {
+      "head": "a3e18f166ed6ac68f57428097c584401da9b0288",
+      "exitCode": 0,
+      "logSha256": "760a80c381161b0d2610751a1911b3d5f4e61d7713cb650c1b70e473f9b4d9fb"
+    },
+    "quota-standalone-watch-full-test": {
+      "head": "6fc95b753de5a66e52e04e03b82ca2804757dcc9",
+      "exitCode": 0,
+      "logSha256": "8148f10b6913f74f8a63cad8767ef163c9ba72fc40593e8fe0008bdb9b73b364"
+    },
+    "quota-standalone-watch-full-types": {
+      "head": "6fc95b753de5a66e52e04e03b82ca2804757dcc9",
+      "exitCode": 0,
+      "logSha256": "e50a5df65b0d2bcfb20f09070e5482910b40911e809cb6e43996537509df0dbc"
+    },
+    "quota-standalone-watch-full-lint": {
+      "head": "6fc95b753de5a66e52e04e03b82ca2804757dcc9",
+      "exitCode": 0,
+      "logSha256": "5abe4a01470cecbd1600cd864744a95c66262df144d137b4b3351852564a4b86"
+    }
+  },
+  "testCounts": {
+    "@superset/host-client": {
+      "pass": 8,
+      "fail": 0
+    },
+    "@superset/chat": {
+      "pass": 69,
+      "fail": 0
+    },
+    "@superset/cli-framework": {
+      "pass": 73,
+      "fail": 0
+    },
+    "@superset/port-scanner": {
+      "pass": 110,
+      "fail": 0
+    },
+    "@superset/workspace-fs": {
+      "pass": 191,
+      "fail": 0
+    },
+    "@superset/chat-runtime": {
+      "pass": 305,
+      "skip": 2,
+      "fail": 0
+    },
+    "@superset/i18n": {
+      "pass": 164,
+      "fail": 0
+    },
+    "@superset/pty-daemon": {
+      "pass": 189,
+      "fail": 0
+    },
+    "@superset/shared": {
+      "pass": 1377,
+      "fail": 0
+    },
+    "@superset/agent-setup": {
+      "pass": 382,
+      "skip": 1,
+      "fail": 0
+    },
+    "@superset/realtime": {
+      "pass": 3,
+      "fail": 0
+    },
+    "@superset/chat-ui": {
+      "pass": 23,
+      "fail": 0
+    },
+    "@superset/panes": {
+      "pass": 121,
+      "fail": 0
+    },
+    "@superset/email": {
+      "pass": 5,
+      "fail": 0
+    },
+    "@superset/auth": {
+      "pass": 55,
+      "fail": 0
+    },
+    "@superset/sandbox": {
+      "pass": 16,
+      "fail": 0
+    },
+    "@superset/marketing": {
+      "pass": 160,
+      "fail": 0
+    },
+    "@superset/trpc": {
+      "pass": 621,
+      "fail": 0
+    },
+    "@superset/relay": {
+      "pass": 13,
+      "fail": 0
+    },
+    "@superset/cloud-client": {
+      "pass": 27,
+      "fail": 0
+    },
+    "@superset/api": {
+      "pass": 239,
+      "fail": 0
+    },
+    "@superset/workspace-client": {
+      "pass": 29,
+      "fail": 0
+    },
+    "@superset/cli": {
+      "pass": 423,
+      "fail": 0
+    },
+    "@superset/mobile": {
+      "pass": 224,
+      "fail": 0
+    },
+    "@superset/host-service": {
+      "pass": 2851,
+      "todo": 8,
+      "fail": 0
+    },
+    "@superset/web": {
+      "pass": 55,
+      "fail": 0
+    },
+    "@superset/desktop": {
+      "pass": 8368,
+      "skip": 1,
+      "fail": 0
+    }
+  },
+  "hostedCI": "Maintainer approval required; local results do not imply hosted checks or approval."
+}
