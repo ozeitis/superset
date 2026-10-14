@@ -1,0 +1,125 @@
+{
+  "scope": "Actual frontend components with synthetic accounts and controlled launch responses. Not authenticated provider replay or full desktop/backend E2E.",
+  "sourceCommit": "f1ce85270884515834a7ebef37c6dff25ce67675",
+  "components": [
+    "AddTabMenu",
+    "AccountTerminalDialogFrame",
+    "AccountTerminalForm"
+  ],
+  "sourceSha256": {
+    "apps/desktop/.storybook/main.ts": "0556d05aaebf2a25af0f36f014ab9783bd481d477bdebd5a580409af832ac1f4",
+    "apps/desktop/.storybook/preview.tsx": "f056413dde3fa3e3f0ad5fd07ca00cb4cb13f51421fdb4e0159efe602ac723ab",
+    "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AccountTerminalDialog/components/AccountTerminalDialogFrame/AccountTerminalDialogFrame.tsx": "758850ff508759abb29ba4a1c50ed17659fb6a971adbcd7625d00611719e5451",
+    "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AccountTerminalDialog/components/AccountTerminalForm/AccountTerminalForm.tsx": "59b2cbb23d6ae8842f854e1b03aa7f532b515db303832b3b711d0f208ebe68ad",
+    "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AddTabMenu/AddTabMenu.tsx": "bdafbd40962506db3ccc4962369052281559c41f742a085f8a0779ef0543d260"
+  },
+  "result": "PASS within stated component scope",
+  "journeys": [
+    {
+      "surface": "terminal",
+      "behavior": "12 forward and 12 reverse Tab presses retain focus inside the account picker.",
+      "screenshots": [
+        "12-terminal-trap-qualified.png"
+      ]
+    },
+    {
+      "surface": "chat",
+      "behavior": "12 forward and 12 reverse Tab presses retain focus inside the account picker.",
+      "screenshots": [
+        "05-chat-trap-qualified.png"
+      ]
+    },
+    {
+      "surface": "terminal and chat",
+      "behavior": "Cancel restores the actual Add Tab trigger. Return reopens the menu from restored focus.",
+      "screenshots": [
+        "04-terminal-cancel-qualified.png",
+        "06-chat-cancel-qualified.png",
+        "13-terminal-cancel-final-qualified.png"
+      ]
+    },
+    {
+      "surface": "terminal and chat",
+      "behavior": "Pending launch ignores Escape; Cancel and fields are disabled, and Close is removed.",
+      "screenshots": [
+        "08-terminal-pending-escape-qualified.png",
+        "10-chat-pending-escape-qualified.png"
+      ]
+    },
+    {
+      "surface": "terminal and chat",
+      "behavior": "Controlled acceptance closes the dialog and preserves target focus; typed text confirms retained focus.",
+      "screenshots": [
+        "09-terminal-accepted-focus-qualified.png",
+        "11-chat-accepted-focus-qualified.png"
+      ]
+    },
+    {
+      "surface": "chat",
+      "behavior": "The nested native Codex provider selector opens and accepts selection.",
+      "screenshots": [
+        "10-chat-pending-escape-qualified.png",
+        "11-chat-accepted-focus-qualified.png"
+      ]
+    }
+  ],
+  "walkthrough": {
+    "path": "account-modal-focus-walkthrough.gif",
+    "kind": "Ten actual CUA screenshot keyframes, not a continuous screen recording.",
+    "durationMs": 18000,
+    "processing": "Resized to 1200 px width and GIF quantized; original PNG pixels retained."
+  },
+  "fixtureBoundaries": [
+    "All account identities are synthetic reserved .test addresses, declared synthetic on screen. No real credentials or profiles are loaded.",
+    "The unrelated HotkeyMenuShortcut label is replaced by an inert fixture stub to avoid Electron keyboard IPC. Actual menu, dialog frame and account form run unchanged.",
+    "A controlled target textarea represents accepted-launch focus. No terminal, provider or backend is started.",
+    "The initial fixture with an overridden Radix trigger ID was invalid and is excluded. Production trigger has no such override. No product change resulted from this verification.",
+    "Nested Select options use a Radix portal. The DOM-containment trace can classify their option nodes outside the dialog; ordinary Tab cycles remain contained."
+  ],
+  "assets": {
+    "04-terminal-cancel-qualified.png": {
+      "sha256": "266e31e5b577715e12439f78c665acee7761b43b799f54c10097580fc15d158a",
+      "bytes": 320757
+    },
+    "05-chat-trap-qualified.png": {
+      "sha256": "d2fa66fb71e066e6080602460939d4c8e60c085be992ce5a1b7ee514038ceaab",
+      "bytes": 333148
+    },
+    "06-chat-cancel-qualified.png": {
+      "sha256": "e0d9bf14a757d20d802c6488fcbaf9c21851a8a5c47987c9df0cf94ea446d0ec",
+      "bytes": 315425
+    },
+    "07-terminal-selected-qualified.png": {
+      "sha256": "d5900c9510adcffb3a27b40ee4ea997adcb8bfa7b6817663d416344f62d24968",
+      "bytes": 338916
+    },
+    "08-terminal-pending-escape-qualified.png": {
+      "sha256": "8bddfe8fd0563d96330b5408a5cb3d1599f3391610e49ffdfdb0d3ffe38977dc",
+      "bytes": 346224
+    },
+    "09-terminal-accepted-focus-qualified.png": {
+      "sha256": "0f3fc60dd24a7d4e15a22559bece99cd76a4e9126e8103b96155deef7f177f33",
+      "bytes": 321377
+    },
+    "10-chat-pending-escape-qualified.png": {
+      "sha256": "ca737d02acdd04f5de44c119831b331176624fe4b9dc20b301c211b6f7b884a3",
+      "bytes": 338608
+    },
+    "11-chat-accepted-focus-qualified.png": {
+      "sha256": "9a88d151e0c9b64bf23ae89a8c30a45226a30670f3861a3cf309b3a1e92130ba",
+      "bytes": 324493
+    },
+    "12-terminal-trap-qualified.png": {
+      "sha256": "ba56c5b0f56fa27b1fb1c60680c485c22c3e0e43a183f7a3ce39e11306dc35f0",
+      "bytes": 339463
+    },
+    "13-terminal-cancel-final-qualified.png": {
+      "sha256": "91245695573c3c94248b083aeba5d858b17578eb9e6acb46c368e66c4c366316",
+      "bytes": 316558
+    },
+    "account-modal-focus-walkthrough.gif": {
+      "sha256": "3a0f2d86560dea1244e2498097cb04e1d99b8871bad1acd892ec70710340d1e6",
+      "bytes": 930191
+    }
+  }
+}
