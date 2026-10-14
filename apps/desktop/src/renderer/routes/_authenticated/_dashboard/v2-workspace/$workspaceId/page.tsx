@@ -25,10 +25,12 @@ import { ResizablePanel } from "renderer/screens/main/components/ResizablePanel"
 import { getV2NotificationSourcesForTab } from "renderer/stores/v2-notifications";
 import { useStore } from "zustand";
 import { useWorkspace } from "../providers/WorkspaceProvider";
+import { AccountTerminalDialog } from "./components/AccountTerminalDialog";
 import { AddTabMenu } from "./components/AddTabMenu";
 import { ChangesControl } from "./components/ChangesControl";
 import { CloudWorkspaceTabBarControls } from "./components/CloudWorkspaceTabBarControls";
 import { RightPaneArea, type RightPaneKind } from "./components/RightPaneArea";
+import { SavedConversationsDialog } from "./components/SavedConversationsDialog";
 import { V2NotificationStatusIndicator } from "./components/V2NotificationStatusIndicator";
 import { V2PresetsBar } from "./components/V2PresetsBar";
 import { V2WorkspaceOpenInButton } from "./components/V2WorkspaceOpenInButton";
@@ -207,13 +209,34 @@ function V2WorkspaceContent() {
 		hasRow,
 	});
 	const linkedPaneStores = useMemo(() => [rightStore], [rightStore]);
+	const linkedTerminalStores = useMemo(
+		() =>
+			isRightPaneAreaEnabled
+				? [{ store: rightStore, reveal: () => setRightSidebarOpen(true) }]
+				: [],
+		[isRightPaneAreaEnabled, rightStore, setRightSidebarOpen],
+	);
 	const fileDocumentStores = useMemo(
 		() => [store, rightStore],
 		[store, rightStore],
 	);
 	const launcher = useV2TerminalLauncher();
-	const { createNewAgentSession, openAgentChat, focusAgentTerminal } =
-		useAgentSessionLauncher({ workspaceId, store });
+	const [accountTerminalOpen, setAccountTerminalOpen] = useState(false);
+	const [accountChatOpen, setAccountChatOpen] = useState(false);
+	const accountTerminalReturnFocus = useRef<HTMLElement | null>(null);
+	const accountChatReturnFocus = useRef<HTMLElement | null>(null);
+	const [savedConversationsOpen, setSavedConversationsOpen] = useState(false);
+	const {
+		createNewAgentSession,
+		createAccountTerminal,
+		createAccountChat,
+		openAgentChat,
+		focusAgentTerminal,
+	} = useAgentSessionLauncher({
+		workspaceId,
+		store,
+		linkedStores: linkedTerminalStores,
+	});
 	const {
 		matchedPresets,
 		newTabPresets,
@@ -680,6 +703,24 @@ function V2WorkspaceContent() {
 									renderAddTabMenu={() => (
 										<AddTabMenu
 											onAddTerminal={addTerminalTab}
+											onAddAccountChat={
+												isSandbox
+													? undefined
+													: (returnFocus) => {
+															accountChatReturnFocus.current = returnFocus;
+															setAccountChatOpen(true);
+														}
+											}
+											onOpenSavedConversation={
+												isSandbox
+													? undefined
+													: () => setSavedConversationsOpen(true)
+											}
+											onAddAccountTerminal={
+												isSandbox
+													? undefined
+													: () => setAccountTerminalOpen(true)
+											}
 											onAddBrowser={addBrowserTab}
 											onAddChanges={openChanges}
 											onAddDesktop={isSandbox ? addDesktopTab : undefined}
@@ -788,6 +829,31 @@ function V2WorkspaceContent() {
 				recentlyViewedFiles={recentFiles}
 				openFilePaths={openFilePaths}
 			/>
+			{accountChatOpen && (
+				<AccountTerminalDialog
+					key={`${workspaceId}:chat`}
+					surface="chat"
+					onClose={() => setAccountChatOpen(false)}
+					onLaunch={createAccountChat}
+					returnFocus={accountChatReturnFocus.current}
+				/>
+			)}
+			{savedConversationsOpen && (
+				<SavedConversationsDialog
+					key={workspaceId}
+					workspaceId={workspaceId}
+					onClose={() => setSavedConversationsOpen(false)}
+					onOpenTerminal={focusAgentTerminal}
+				/>
+			)}
+			{accountTerminalOpen && (
+				<AccountTerminalDialog
+					key={workspaceId}
+					onClose={() => setAccountTerminalOpen(false)}
+					onLaunch={createAccountTerminal}
+					returnFocus={accountTerminalReturnFocus.current}
+				/>
+			)}
 		</FileDocumentStoreProvider>
 	);
 }

@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
 
-const { act, cleanup, renderHook } = await import("@testing-library/react");
+const { act, cleanup, fireEvent, render, renderHook } = await import(
+	"@testing-library/react"
+);
 const { prependToDraft, takeRecoveredDraftText, useComposerDraft } =
 	await import("./useComposerDraft");
 
@@ -70,4 +72,259 @@ test("text recovered after a composer read its draft is handed to it once", () =
 	const reader = renderHook(() => useComposerDraft("chat-v3-draft:early"));
 	expect(reader.result.current.storedDraft).toBe("unsent message");
 	expect(takeRecoveredDraftText("chat-v3-draft:early")).toBeNull();
+});
+
+test("an accepted upload/send after unmount clears the submitted persisted draft", async () => {
+	const { submitMessage } = await import("../../utils/submitMessage");
+	const key = "chat-v3-draft:accepted-after-unmount";
+	const composer = renderHook(() => useComposerDraft(key));
+	act(() => composer.result.current.onChange("  submitted text  "));
+	const upload = Promise.withResolvers<string[]>();
+	const finishSubmission =
+		composer.result.current.beginSubmission("submitted text");
+	const pending = submitMessage(
+		{ text: "submitted text", files: [], mentions: [], steer: false },
+		{ uploadAttachments: () => upload.promise, onSend: async () => true },
+	);
+	composer.unmount();
+	upload.resolve([]);
+	finishSubmission((await pending) !== false);
+	expect(window.localStorage.getItem(key)).toBeNull();
+	const remounted = renderHook(() => useComposerDraft(key));
+	expect(remounted.result.current.storedDraft).toBeUndefined();
+});
+
+test("rejected or thrown submissions preserve the unmounted draft", async () => {
+	const { submitMessage } = await import("../../utils/submitMessage");
+	for (const rejection of [false, new Error("not accepted")]) {
+		const key = `chat-v3-draft:rejected-${String(rejection)}`;
+		const composer = renderHook(() => useComposerDraft(key));
+		act(() => composer.result.current.onChange("keep this"));
+		const finish = composer.result.current.beginSubmission("keep this");
+		composer.unmount();
+		try {
+			const result = await submitMessage(
+				{ text: "keep this", files: [], mentions: [], steer: false },
+				{
+					uploadAttachments: async () => [],
+					onSend: async () => {
+						if (rejection instanceof Error) throw rejection;
+						return rejection;
+					},
+				},
+			);
+			finish(result !== false);
+		} catch {
+			finish(false);
+		}
+		expect(window.localStorage.getItem(key)).toBe("keep this");
+	}
+});
+
+test("a raw edit and undo invalidate a pending submission", () => {
+	const key = "chat-v3-draft:submission-aba";
+	const composer = renderHook(() => useComposerDraft(key));
+	act(() => composer.result.current.onChange("  same text  "));
+	const finish = composer.result.current.beginSubmission("same text");
+	act(() => composer.result.current.onChange("same text"));
+	act(() => composer.result.current.onChange("  same text  "));
+	composer.unmount();
+	finish(true);
+	expect(window.localStorage.getItem(key)).toBe("  same text  ");
+});
+
+test("recovered text invalidates a pending submission", () => {
+	const key = "chat-v3-draft:submission-recovery";
+	const composer = renderHook(() => useComposerDraft(key));
+	act(() => composer.result.current.onChange("submitted"));
+	const finish = composer.result.current.beginSubmission("submitted");
+	prependToDraft(key, "recovered queued message");
+	composer.unmount();
+	finish(true);
+	expect(window.localStorage.getItem(key)).toBe(
+		"recovered queued message\n\nsubmitted",
+	);
+});
+
+test("a different mount of the same draft can edit while a submission settles", () => {
+	const key = "chat-v3-draft:submission-other-mount";
+	const first = renderHook(() => useComposerDraft(key));
+	act(() => first.result.current.onChange("submitted"));
+	const finish = first.result.current.beginSubmission("submitted");
+	const second = renderHook(() => useComposerDraft(key));
+	act(() => second.result.current.onChange("newer draft"));
+	first.unmount();
+	finish(true);
+	second.unmount();
+	expect(window.localStorage.getItem(key)).toBe("newer draft");
+});
+
+test("a newer same-key submission replaces the older receipt", () => {
+	const key = "chat-v3-draft:submission-newer";
+	const first = renderHook(() => useComposerDraft(key));
+	act(() => first.result.current.onChange("submitted"));
+	const older = first.result.current.beginSubmission("submitted");
+	const second = renderHook(() => useComposerDraft(key));
+	const newer = second.result.current.beginSubmission("submitted");
+	first.unmount();
+	second.unmount();
+	older(true);
+	expect(window.localStorage.getItem(key)).toBe("submitted");
+	newer(true);
+	expect(window.localStorage.getItem(key)).toBeNull();
+});
+
+test("acceptance retains an empty memory fallback when storage removal fails", () => {
+	const key = "chat-v3-draft:submission-remove-failure";
+	const composer = renderHook(() => useComposerDraft(key));
+	act(() => composer.result.current.onChange("submitted"));
+	const finish = composer.result.current.beginSubmission("submitted");
+	composer.unmount();
+	const removeItem = spyOn(
+		window.localStorage,
+		"removeItem",
+	).mockImplementation(() => {
+		throw new Error("SecurityError");
+	});
+	const warn = spyOn(console, "warn").mockImplementation(() => {});
+	try {
+		finish(true);
+		const next = renderHook(() => useComposerDraft(key));
+		expect(next.result.current.storedDraft).toBe("");
+		act(() => next.result.current.onChange("newer draft"));
+		next.unmount();
+		expect(window.localStorage.getItem(key)).toBe("newer draft");
+	} finally {
+		removeItem.mockRestore();
+		warn.mockRestore();
+	}
+});
+
+test("a submission keeps its original draft key across navigation", () => {
+	const firstKey = "chat-v3-draft:submission-navigation-a";
+	const secondKey = "chat-v3-draft:submission-navigation-b";
+	const composer = renderHook(({ key }) => useComposerDraft(key), {
+		initialProps: { key: firstKey },
+	});
+	act(() => composer.result.current.onChange("submitted"));
+	const finish = composer.result.current.beginSubmission("submitted");
+	composer.rerender({ key: secondKey });
+	act(() => composer.result.current.onChange("next chat draft"));
+	finish(true);
+	composer.unmount();
+	expect(window.localStorage.getItem(firstKey)).toBeNull();
+	expect(window.localStorage.getItem(secondKey)).toBe("next chat draft");
+});
+
+test("acceptance clears the mounted seed before navigating back to the same draft", () => {
+	const key = "chat-v3-draft:submission-seeded-navigation";
+	window.localStorage.setItem(key, "submitted");
+	const composer = renderHook(({ key }) => useComposerDraft(key), {
+		initialProps: { key },
+	});
+	const finish = composer.result.current.beginSubmission("submitted");
+	act(() => finish(true));
+	composer.rerender({
+		key: "chat-v3-draft:submission-seeded-navigation-other",
+	});
+	composer.rerender({ key });
+	expect(composer.result.current.storedDraft).toBeUndefined();
+});
+
+test("acceptance cannot restore the seed of a replacement mount", () => {
+	const key = "chat-v3-draft:submission-replacement-seed";
+	window.localStorage.setItem(key, "submitted");
+	const first = renderHook(() => useComposerDraft(key));
+	const finish = first.result.current.beginSubmission("submitted");
+	const replacement = renderHook(({ key }) => useComposerDraft(key), {
+		initialProps: { key },
+	});
+	first.unmount();
+	act(() => finish(true));
+	replacement.rerender({ key: "chat-v3-draft:submission-replacement-other" });
+	replacement.rerender({ key });
+	expect(replacement.result.current.storedDraft).toBeUndefined();
+});
+
+test("a temporary storage read failure keeps the mounted draft seed", () => {
+	const key = "chat-v3-draft:seed-read-failure";
+	window.localStorage.setItem(key, "keep this draft");
+	const composer = renderHook(() => useComposerDraft(key));
+	const getItem = spyOn(window.localStorage, "getItem").mockImplementation(
+		() => {
+			throw new Error("SecurityError");
+		},
+	);
+	try {
+		composer.rerender();
+		expect(composer.result.current.storedDraft).toBe("keep this draft");
+	} finally {
+		getItem.mockRestore();
+	}
+});
+
+test("acceptance while navigated away clears the original cached seed", () => {
+	const key = "chat-v3-draft:submission-away-seed";
+	window.localStorage.setItem(key, "submitted");
+	const composer = renderHook(({ key }) => useComposerDraft(key), {
+		initialProps: { key },
+	});
+	const finish = composer.result.current.beginSubmission("submitted");
+	composer.rerender({ key: "chat-v3-draft:submission-away-other" });
+	finish(true);
+	composer.rerender({ key });
+	expect(composer.result.current.storedDraft).toBeUndefined();
+});
+
+test("a late plugin chip stays saved when a send is accepted after close", async () => {
+	const { PromptInput } = await import("@superset/chat-ui/PromptInput");
+	type Props = import("@superset/chat-ui/PromptInput").PromptInputProps;
+	const key = "chat-v3-draft:late-plugin-hydration";
+	const text = "Review @example.ts";
+	window.localStorage.setItem(key, text);
+	const accepted = Promise.withResolvers<void>();
+	function DraftComposer({ findChips }: Pick<Props, "findChips">) {
+		const { storedDraft, onChange, beginSubmission } = useComposerDraft(key);
+		return (
+			<PromptInput
+				placeholder="Write a message"
+				mentionProviders={[]}
+				commands={[]}
+				defaultValue={storedDraft}
+				findChips={findChips}
+				onChange={onChange}
+				onSubmit={async (payload) => {
+					const finish = beginSubmission(
+						payload.text,
+						payload.isDraftUnchanged,
+					);
+					await accepted.promise;
+					finish(true);
+				}}
+			/>
+		);
+	}
+	const composer = render(<DraftComposer />);
+	await act(async () => {});
+	fireEvent.click(composer.getByRole("button", { name: "Send message" }));
+	composer.rerender(
+		<DraftComposer
+			findChips={() => [
+				{
+					start: 7,
+					end: text.length,
+					chip: { label: "Example file", serialized: "@example.ts" },
+				},
+			]}
+		/>,
+	);
+	await act(async () => {});
+	expect(composer.getByText("Example file")).toBeTruthy();
+	expect(composer.getByRole("textbox").textContent).toBe("Review Example file");
+	composer.unmount();
+	await act(async () => accepted.resolve());
+	expect(window.localStorage.getItem(key)).toBe(text);
+	const reopened = render(<DraftComposer />);
+	await act(async () => {});
+	expect(reopened.getByRole("textbox").textContent).toBe(text);
 });

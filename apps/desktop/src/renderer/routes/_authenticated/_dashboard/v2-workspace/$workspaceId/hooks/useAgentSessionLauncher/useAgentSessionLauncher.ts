@@ -19,7 +19,11 @@ import type {
 	PaneViewerData,
 	TerminalPaneData,
 } from "../../types";
-import { focusOrAddTerminalPane } from "../../utils/focusTerminalPane";
+import {
+	focusOrAddTerminalPane,
+	type LinkedTerminalPaneStore,
+} from "../../utils/focusTerminalPane";
+import { useChatWiring } from "../usePaneRegistry/components/ChatSession/hooks/useSessionClient";
 
 export interface CreateNewAgentSessionInput {
 	configId: string;
@@ -35,6 +39,11 @@ export type CreateNewAgentSession = (
 	input: CreateNewAgentSessionInput,
 ) => Promise<{ terminalId: string } | null>;
 
+export type CreateAccountTerminal = (input: {
+	configId: string;
+	account: { selection: string | null; identity: string };
+}) => Promise<void>;
+
 export type OpenAgentChat = (
 	input: Omit<CreateNewAgentSessionInput, "forkSessionId" | "prompt"> & {
 		prompt?: string;
@@ -45,23 +54,120 @@ export type OpenAgentChat = (
 interface UseAgentSessionLauncherOptions {
 	workspaceId: string;
 	store: StoreApi<WorkspaceStore<PaneViewerData>>;
+	linkedStores?: readonly LinkedTerminalPaneStore[];
 }
 
 export function useAgentSessionLauncher({
 	workspaceId,
 	store,
+	linkedStores,
 }: UseAgentSessionLauncherOptions): {
 	createNewAgentSession: CreateNewAgentSession;
+	createAccountTerminal: CreateAccountTerminal;
+	createAccountChat: CreateAccountTerminal;
 	openAgentChat: OpenAgentChat;
 	focusAgentTerminal: (terminalId: string) => void;
 } {
 	const { t } = useLingui();
 	const runAgent = workspaceTrpc.agents.run.useMutation();
+	const runWithAccount = workspaceTrpc.agents.runWithAccount.useMutation();
 	const appearance = useTerminalAppearance();
 	const awaitAcpChatEnabled = useAwaitAcpChatEnabled();
 	const { hostUrl } = useWorkspaceClient();
 	const { data: agentConfigs } = useV2AgentConfigs(hostUrl);
 	const queryClient = useQueryClient();
+	const wiring = useChatWiring();
+	const createAccountChat = useCallback<CreateAccountTerminal>(
+		async ({ configId, account }) => {
+			if (!hostUrl)
+				throw new Error(t({ message: "Host service is not running" }));
+			if (!(await awaitAcpChatEnabled()))
+				throw new Error(t({ message: "Native chat is not enabled" }));
+			const configs = await queryClient.fetchQuery(
+				v2AgentConfigsQueryOptions(hostUrl),
+			);
+			const config = configs.find((entry) => entry.id === configId);
+			if (
+				!config ||
+				(config.presetId !== "claude" && config.presetId !== "codex")
+			)
+				throw new Error(
+					t({
+						message:
+							"This agent configuration does not support account selection.",
+					}),
+				);
+			const capabilities = await wiring.transport.accountCapabilities();
+			if (!capabilities.harnesses.includes(`${config.presetId}-acp`))
+				throw new Error(
+					t({
+						message:
+							"This host does not support account selection for native chats.",
+					}),
+				);
+			const commandId = crypto.randomUUID();
+			store.getState().addTab({
+				panes: [
+					{
+						kind: "chat-v3",
+						titleOverride: config.label,
+						data: {
+							terminalId: crypto.randomUUID(),
+							sessionId: null,
+							agent: { id: config.presetId },
+							accountBound: true,
+							accountDraftId: commandId,
+							accountLaunch: {
+								hostUrl,
+								request: {
+									commandId,
+									account,
+									workspaceId,
+									harness: `${config.presetId}-acp`,
+								},
+							},
+						} satisfies ChatPaneData,
+					},
+				],
+			});
+		},
+		[
+			awaitAcpChatEnabled,
+			queryClient,
+			hostUrl,
+			wiring.transport,
+			store,
+			t,
+			workspaceId,
+		],
+	);
+	const createAccountTerminal = useCallback<CreateAccountTerminal>(
+		async ({ configId, account }) => {
+			const result = await runWithAccount.mutateAsync({
+				workspaceId,
+				agent: configId,
+				account,
+				prompt: "",
+				surface: "terminal",
+				colors: terminalQueryColors(appearance.theme),
+			});
+			if (result.kind !== "terminal") {
+				throw new Error(
+					t({ message: "Selected agent isn't a terminal agent" }),
+				);
+			}
+			store.getState().addTab({
+				panes: [
+					{
+						kind: "terminal",
+						titleOverride: result.label,
+						data: { terminalId: result.sessionId } satisfies TerminalPaneData,
+					},
+				],
+			});
+		},
+		[runWithAccount, workspaceId, appearance.theme, store, t],
+	);
 
 	const openAgentChat = useCallback<OpenAgentChat>(
 		async (input) => {
@@ -173,10 +279,16 @@ export function useAgentSessionLauncher({
 
 	const focusAgentTerminal = useCallback(
 		(terminalId: string) => {
-			focusOrAddTerminalPane(store, terminalId);
+			focusOrAddTerminalPane(store, terminalId, linkedStores);
 		},
-		[store],
+		[store, linkedStores],
 	);
 
-	return { createNewAgentSession, openAgentChat, focusAgentTerminal };
+	return {
+		createNewAgentSession,
+		createAccountTerminal,
+		createAccountChat,
+		openAgentChat,
+		focusAgentTerminal,
+	};
 }

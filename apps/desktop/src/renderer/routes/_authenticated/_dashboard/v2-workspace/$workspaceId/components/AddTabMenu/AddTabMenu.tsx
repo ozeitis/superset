@@ -11,6 +11,9 @@ import { HotkeyMenuShortcut } from "renderer/components/HotkeyMenuShortcut";
 
 interface AddTabMenuProps {
 	onAddTerminal: () => void;
+	onAddAccountTerminal?: (returnFocus: HTMLElement | null) => void;
+	onAddAccountChat?: (returnFocus: HTMLElement | null) => void;
+	onOpenSavedConversation?: () => void;
 	onAddBrowser: () => void;
 	onAddChanges: () => void;
 	onAddDesktop?: (() => void) | undefined;
@@ -20,6 +23,9 @@ interface AddTabMenuProps {
 
 export function AddTabMenu({
 	onAddTerminal,
+	onAddAccountTerminal,
+	onAddAccountChat,
+	onOpenSavedConversation,
 	onAddBrowser,
 	onAddChanges,
 	onAddDesktop,
@@ -35,6 +41,44 @@ export function AddTabMenu({
 				</span>
 				<HotkeyMenuShortcut hotkeyId="NEW_GROUP" />
 			</DropdownMenuItem>
+			{onAddAccountChat && (
+				<DropdownMenuItem
+					className="gap-2"
+					onClick={(event) => {
+						const triggerId = event.currentTarget
+							.closest('[role="menu"]')
+							?.getAttribute("aria-labelledby");
+						onAddAccountChat(
+							triggerId ? document.getElementById(triggerId) : null,
+						);
+					}}
+				>
+					<BsTerminalPlus className="size-4" />
+					<Trans>Chat with account…</Trans>
+				</DropdownMenuItem>
+			)}
+			{onAddAccountTerminal && (
+				<DropdownMenuItem
+					className="gap-2"
+					onClick={(event) => {
+						const triggerId = event.currentTarget
+							.closest('[role="menu"]')
+							?.getAttribute("aria-labelledby");
+						onAddAccountTerminal(
+							triggerId ? document.getElementById(triggerId) : null,
+						);
+					}}
+				>
+					<BsTerminalPlus className="size-4" />
+					<Trans>Agent terminal with account…</Trans>
+				</DropdownMenuItem>
+			)}
+			{onOpenSavedConversation && (
+				<DropdownMenuItem className="gap-2" onClick={onOpenSavedConversation}>
+					<BsTerminalPlus className="size-4" />
+					<Trans>Open saved Claude conversation…</Trans>
+				</DropdownMenuItem>
+			)}
 			<DropdownMenuItem className="gap-2" onClick={onAddBrowser}>
 				<TbWorld className="size-4" />
 				<span>
