@@ -1,0 +1,861 @@
+{
+  "checkedAt": "2026-10-25T22:57:36.581682+00:00",
+  "upstream": "e80bcf08c62f4c696c81227e6714603aff72b62e",
+  "integratedTestedCommit": "3980f953a5f8d733f9591b3ab28aae5294177eda",
+  "recoverableReviewCommit": "88c78bd33fa2323b5035af9043d7222ff77fa21a",
+  "reviewRef": "review/accounts-bot-fixes-20261013",
+  "identicalReviewTree": true,
+  "branches": [
+    {
+      "number": 8399,
+      "branch": "fix/quota-refresh-ordering",
+      "localRef": "batch/pr8399",
+      "head": "fcfecc400f588dbed7538e0b5ca2bd25951ffbd2"
+    },
+    {
+      "number": 8400,
+      "branch": "fix/composer-submission-acceptance",
+      "localRef": "batch/pr8400",
+      "head": "dfcffe921e0effac83b275cf00de6aee4fbf6115"
+    },
+    {
+      "number": 8401,
+      "branch": "feat/terminal-account-schema",
+      "localRef": "batch/pr8401",
+      "head": "59ccb359d332d8a2ef2f0838a0ccfe5dbaf8eeb4"
+    },
+    {
+      "number": 8402,
+      "branch": "feat/native-chat-account-schema",
+      "localRef": "batch/pr8402",
+      "head": "ac12d45d97bf8fb6032d96de0f0c4f8c7e452ac5"
+    },
+    {
+      "number": 8459,
+      "branch": "feat/saved-conversation-schema",
+      "localRef": "batch/pr8459",
+      "head": "2829d6628a8c48960cd82630edbb7013dc85aaa2"
+    },
+    {
+      "number": 8460,
+      "branch": "feat/conversation-account-selection",
+      "localRef": "batch/pr8460",
+      "head": "4dbb213b389cb2e53080eea6a9f0905a9b12d195"
+    },
+    {
+      "number": 8461,
+      "branch": "feat/exact-account-resume",
+      "localRef": "batch/pr8461",
+      "head": "adbb88a43a74ba941dd593212ae7ca06a59b3766"
+    },
+    {
+      "number": 8462,
+      "branch": "feat/native-chat-accounts",
+      "localRef": "batch/pr8462",
+      "head": "c7c54f5de2517ddcc890448b6c8f8c20196831d3"
+    },
+    {
+      "number": 8463,
+      "branch": "feat/saved-claude-conversations",
+      "localRef": "batch/pr8463",
+      "head": "706ecf80bc0c2d36bdececac3d822e4822f7c911"
+    },
+    {
+      "number": 8464,
+      "branch": "fix/quota-credential-revisions",
+      "localRef": "batch/pr8464",
+      "head": "88cbafb8e771b1ad1100d7a3175a23583c757291"
+    },
+    {
+      "number": 8501,
+      "branch": "test/watcher-created-path-readiness",
+      "localRef": "batch/pr8501",
+      "head": "7b4d7d837c876085338d7739bc543835b37824d6"
+    },
+    {
+      "number": null,
+      "key": "floating-schema",
+      "localRef": "batch/floating-appearance-schema",
+      "head": "6945d651da10e57bede32a576f9fc698cf44b482",
+      "branch": "feat/usage-widget-appearances"
+    },
+    {
+      "number": null,
+      "key": "floating-menu",
+      "localRef": "batch/floating-menu",
+      "head": "8440c26e5777a339047cf52dd0a9274c5ec8bce5",
+      "branch": "feat/floating-usage-menu"
+    }
+  ],
+  "combinedTestCounts": {
+    "pass": 17535,
+    "fail": 0,
+    "skip": 3,
+    "todo": 8
+  },
+  "gates": [
+    {
+      "name": "combined-final-tests",
+      "head": "3980f953a5f8d733f9591b3ab28aae5294177eda",
+      "directory": ".",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "bun",
+        "run",
+        "test",
+        "--env-mode=loose",
+        "--",
+        "--timeout",
+        "30000",
+        "--max-concurrency",
+        "2",
+        "--parallel=2"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 240.405,
+      "finishedAt": "2026-10-25T22:56:59.502250+00:00"
+    },
+    {
+      "name": "combined-final-types",
+      "head": "3980f953a5f8d733f9591b3ab28aae5294177eda",
+      "directory": ".",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "bun",
+        "run",
+        "typecheck",
+        "--env-mode=loose"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 30.924,
+      "finishedAt": "2026-10-25T22:53:30.021606+00:00"
+    },
+    {
+      "name": "combined-final-lint",
+      "head": "3980f953a5f8d733f9591b3ab28aae5294177eda",
+      "directory": ".",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 9.138,
+      "finishedAt": "2026-10-25T22:53:08.240283+00:00"
+    },
+    {
+      "name": "final-pr8461-successor",
+      "head": "0d411897d320d1f94a3d9dad3af80c2f5f557c4c",
+      "directory": "packages/host-service",
+      "command": [
+        "bun",
+        "test",
+        "src/trpc/router/terminal-agents/resume-account.test.ts",
+        "src/workers/tasks/harness.test.ts",
+        "--timeout",
+        "30000",
+        "--max-concurrency",
+        "2"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.382,
+      "finishedAt": "2026-10-25T22:48:32.962864+00:00"
+    },
+    {
+      "name": "final-pr8461-successor-types",
+      "head": "0d411897d320d1f94a3d9dad3af80c2f5f557c4c",
+      "directory": "packages/host-service",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 4.081,
+      "finishedAt": "2026-10-25T22:48:37.905621+00:00"
+    },
+    {
+      "name": "final-pr8462-successor",
+      "head": "ba3423b3d5978bcbe76f9569d518641036e4e308",
+      "directory": "packages/host-service",
+      "command": [
+        "bun",
+        "test",
+        "src/trpc/router/terminal-agents/resume-account.test.ts",
+        "src/workers/tasks/harness.test.ts",
+        "--timeout",
+        "30000",
+        "--max-concurrency",
+        "2"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.398,
+      "finishedAt": "2026-10-25T22:48:39.222667+00:00"
+    },
+    {
+      "name": "final-pr8462-successor-types",
+      "head": "ba3423b3d5978bcbe76f9569d518641036e4e308",
+      "directory": "packages/host-service",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 3.825,
+      "finishedAt": "2026-10-25T22:48:43.645472+00:00"
+    },
+    {
+      "name": "final-pr8463-history",
+      "head": "d8eb9017584d020a6e0809cd900b4336910b183f",
+      "directory": "packages/host-service",
+      "command": [
+        "bun",
+        "test",
+        "src/trpc/router/saved-conversations",
+        "src/terminal-agents/saved-conversations",
+        "src/trpc/router/terminal-agents",
+        "src/workers/tasks/harness.test.ts",
+        "--timeout",
+        "30000",
+        "--max-concurrency",
+        "2"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.822,
+      "finishedAt": "2026-10-25T22:47:35.328885+00:00"
+    },
+    {
+      "name": "final-pr8463-host-types",
+      "head": "d8eb9017584d020a6e0809cd900b4336910b183f",
+      "directory": "packages/host-service",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 4.477,
+      "finishedAt": "2026-10-25T22:47:37.988633+00:00"
+    },
+    {
+      "name": "final-pr8464-provider",
+      "head": "88cbafb8e771b1ad1100d7a3175a23583c757291",
+      "directory": "packages/host-service",
+      "command": [
+        "bun",
+        "test",
+        "src/trpc/router/usage",
+        "--timeout",
+        "30000",
+        "--max-concurrency",
+        "2"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.59,
+      "finishedAt": "2026-10-25T22:44:37.423770+00:00"
+    },
+    {
+      "name": "final-pr8464-host-types",
+      "head": "88cbafb8e771b1ad1100d7a3175a23583c757291",
+      "directory": "packages/host-service",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 3.459,
+      "finishedAt": "2026-10-25T22:44:41.418501+00:00"
+    },
+    {
+      "name": "final-pr8501-watcher",
+      "head": "7b4d7d837c876085338d7739bc543835b37824d6",
+      "directory": "packages/workspace-fs",
+      "command": [
+        "bun",
+        "test",
+        "src/watch-pathtypes-growth.test.ts",
+        "--timeout",
+        "30000",
+        "--max-concurrency",
+        "2"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.218,
+      "finishedAt": "2026-10-25T22:44:43.411988+00:00"
+    },
+    {
+      "name": "final-account-runtime",
+      "head": "f9cba9e26042cc785304f8e6dffb338326a8657d",
+      "directory": "packages/chat-runtime",
+      "command": [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--max-concurrency",
+        "2"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.314,
+      "finishedAt": "2026-10-25T22:38:16.763450+00:00"
+    },
+    {
+      "name": "final-account-host",
+      "head": "f9cba9e26042cc785304f8e6dffb338326a8657d",
+      "directory": "packages/host-service",
+      "command": [
+        "bun",
+        "test",
+        "src/trpc/router/usage/session-account",
+        "src/chat-v3",
+        "src/trpc/router/notifications",
+        "src/trpc/router/agents",
+        "src/trpc/router/terminal-agents",
+        "src/terminal-agents",
+        "--timeout",
+        "30000",
+        "--max-concurrency",
+        "2"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 3.766,
+      "finishedAt": "2026-10-25T22:38:18.215693+00:00"
+    },
+    {
+      "name": "final-account-ui",
+      "head": "f9cba9e26042cc785304f8e6dffb338326a8657d",
+      "directory": "apps/desktop",
+      "command": [
+        "bun",
+        "test",
+        "src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AccountTerminalDialog",
+        "src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/ChatPane/components/AcpChatPane",
+        "src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AddTabMenu/AddTabMenu.test.tsx",
+        "src/renderer/lib/terminal/continue-native-background.test.ts",
+        "src/renderer/lib/terminal/resume-with-background-reconnect.test.ts",
+        "src/shared/quota-freshness.test.ts",
+        "--timeout",
+        "30000",
+        "--max-concurrency",
+        "2"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.356,
+      "finishedAt": "2026-10-25T22:38:15.805048+00:00"
+    },
+    {
+      "name": "final-account-desktop-types",
+      "head": "f9cba9e26042cc785304f8e6dffb338326a8657d",
+      "directory": "apps/desktop",
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 7.024,
+      "finishedAt": "2026-10-25T22:40:40.968119+00:00"
+    },
+    {
+      "name": "floating-final-full-tests-bounded",
+      "head": "8bd4f188b86676251ba3538e339d5d68b6f7f9f1",
+      "directory": ".",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "bun",
+        "run",
+        "test",
+        "--env-mode=loose",
+        "--",
+        "--timeout",
+        "30000",
+        "--max-concurrency",
+        "2",
+        "--parallel=2"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 219.838,
+      "finishedAt": "2026-10-25T22:36:40.866674+00:00"
+    }
+  ],
+  "scopeReuse": {
+    "batch/pr8399": {
+      "head": "fcfecc400f588dbed7538e0b5ca2bd25951ffbd2",
+      "priorPassingGates": [
+        {
+          "receipt": "floating-clean-unit.json",
+          "scope": [
+            "apps/desktop/src/main/lib/host-usage",
+            "apps/desktop/src/renderer/hooks/host-service/useHostUsageQuota",
+            "apps/desktop/src/shared/host-usage-observation.ts"
+          ],
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": [],
+          "scopeObjectsPresent": true
+        }
+      ]
+    },
+    "batch/pr8400": {
+      "head": "dfcffe921e0effac83b275cf00de6aee4fbf6115",
+      "priorPassingGates": [
+        {
+          "receipt": "pr8400-composer-tests.json",
+          "scope": [
+            "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/ChatSession/components/Composer"
+          ],
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": [],
+          "scopeObjectsPresent": true
+        },
+        {
+          "receipt": "pr8400-chat-ui-tests.json",
+          "scope": [
+            "packages/chat-ui/src/components/PromptInput"
+          ],
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": [],
+          "scopeObjectsPresent": true
+        },
+        {
+          "receipt": "pr8400-desktop-types.json",
+          "scope": [
+            "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/ChatSession/components/Composer",
+            "packages/chat-ui/src/components/PromptInput"
+          ],
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": [],
+          "scopeObjectsPresent": true
+        }
+      ]
+    },
+    "batch/pr8401": {
+      "head": "59ccb359d332d8a2ef2f0838a0ccfe5dbaf8eeb4",
+      "priorPassingGates": [
+        {
+          "receipt": "migration-test-receipts.json",
+          "recordPr": 8401,
+          "testedHead": "f1f43699af2b02a76f28de3fa032be787e6c5df0",
+          "exitCode": 0,
+          "scope": [
+            "packages/host-service/drizzle",
+            "packages/host-service/src/db/schema.ts",
+            "packages/host-service/src/db/account-binding-migration.test.ts"
+          ],
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": [],
+          "scopeObjectsPresent": true
+        }
+      ]
+    },
+    "batch/pr8402": {
+      "head": "ac12d45d97bf8fb6032d96de0f0c4f8c7e452ac5",
+      "priorPassingGates": [
+        {
+          "receipt": "native-final-runtime.json",
+          "scope": [
+            "packages/chat-runtime/src/db"
+          ],
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": [],
+          "scopeObjectsPresent": true
+        },
+        {
+          "receipt": "pr8462-chat-ui.json",
+          "scope": [
+            "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/useConsumeAutomationRunLink/chatSessionTarget.test.ts",
+            "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/ChatPane/components/ChatHistoryPicker/utils/historyEntries.test.ts"
+          ],
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": [],
+          "scopeObjectsPresent": true
+        }
+      ]
+    },
+    "batch/pr8459": {
+      "head": "2829d6628a8c48960cd82630edbb7013dc85aaa2",
+      "priorPassingGates": [
+        {
+          "receipt": "migration-test-receipts.json",
+          "recordPr": 8459,
+          "testedHead": "9f93a780cea8ec8643d0dc6ba6db638cf4d5852d",
+          "exitCode": 0,
+          "scope": [
+            "packages/host-service/drizzle",
+            "packages/host-service/src/db/schema.ts",
+            "packages/host-service/src/db/account-binding-migration.test.ts",
+            "packages/host-service/src/db/saved-conversations-migration.test.ts"
+          ],
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": [],
+          "scopeObjectsPresent": true
+        }
+      ]
+    },
+    "batch/pr8460": {
+      "head": "4dbb213b389cb2e53080eea6a9f0905a9b12d195",
+      "priorPassingGates": [
+        {
+          "receipt": "pr8460-launch-tests.json",
+          "scope": [
+            "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AccountTerminalDialog"
+          ],
+          "comparedSourceUnchanged": false,
+          "changedScopePaths": [
+            "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AccountTerminalDialog/components/AccountTerminalForm/AccountTerminalForm.test.tsx",
+            "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AccountTerminalDialog/components/AccountTerminalForm/AccountTerminalForm.tsx",
+            "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AccountTerminalDialog/components/AccountTerminalForm/launchAccountQuota.test.ts",
+            "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AccountTerminalDialog/components/AccountTerminalForm/launchAccountQuota.ts"
+          ],
+          "scopeObjectsPresent": true
+        }
+      ]
+    },
+    "batch/pr8461": {
+      "head": "b304d7c8cf5a615c120f88380627e5d91a08c7f4",
+      "priorPassingGates": [
+        {
+          "receipt": "native-final-host.json",
+          "scope": [
+            "packages/host-service/src/trpc/router/terminal-agents",
+            "packages/host-service/src/terminal-agents"
+          ],
+          "comparedSourceUnchanged": false,
+          "changedScopePaths": [
+            "packages/host-service/src/terminal-agents/saved-conversations/inspect-native-history.test.ts",
+            "packages/host-service/src/terminal-agents/saved-conversations/inspect-native-history.ts",
+            "packages/host-service/src/trpc/router/terminal-agents/account-resume-history.ts"
+          ],
+          "scopeObjectsPresent": true
+        },
+        {
+          "receipt": "pr8461-history-and-resume.json",
+          "scope": [
+            "packages/host-service/src/terminal-agents/saved-conversations/inspect-native-history.ts",
+            "packages/host-service/src/terminal-agents/saved-conversations/inspect-native-history.test.ts",
+            "packages/host-service/src/trpc/router/terminal-agents/account-resume-history.ts"
+          ],
+          "scopeObjectsPresent": true,
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": []
+        }
+      ]
+    },
+    "batch/pr8462": {
+      "head": "f9cba9e26042cc785304f8e6dffb338326a8657d",
+      "priorPassingGates": [
+        {
+          "receipt": "native-final-host.json",
+          "scope": [
+            "packages/host-service/src/chat-v3/accountSwitch.ts",
+            "packages/host-service/src/chat-v3/accountLaunch.ts",
+            "packages/host-service/src/terminal-agents/saved-conversations/inspect-native-history.ts"
+          ],
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": [],
+          "scopeObjectsPresent": true
+        },
+        {
+          "receipt": "native-final-runtime.json",
+          "scope": [
+            "packages/chat-runtime"
+          ],
+          "comparedSourceUnchanged": false,
+          "changedScopePaths": [
+            "packages/chat-runtime/src/harness/acp/acpAdapter.test.ts",
+            "packages/chat-runtime/src/harness/acp/acpAdapter.ts"
+          ],
+          "scopeObjectsPresent": true
+        },
+        {
+          "receipt": "pr8462-chat-ui.json",
+          "scope": [
+            "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/ChatPane"
+          ],
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": [],
+          "scopeObjectsPresent": true
+        },
+        {
+          "receipt": "pr8462-final-runtime.json",
+          "scope": [
+            "packages/chat-runtime",
+            "packages/chat"
+          ],
+          "scopeObjectsPresent": true,
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": []
+        }
+      ]
+    },
+    "batch/pr8463": {
+      "head": "5e55101aeada5509b7aac0ddddf8b21caeb7b6b1",
+      "priorPassingGates": [
+        {
+          "receipt": "pr8463-host-adoption-tests.json",
+          "scope": [
+            "packages/host-service/src/trpc/router/saved-conversations",
+            "packages/host-service/src/terminal-agents/saved-conversations"
+          ],
+          "comparedSourceUnchanged": false,
+          "changedScopePaths": [
+            "packages/host-service/src/terminal-agents/saved-conversations/inspect-native-history.test.ts",
+            "packages/host-service/src/terminal-agents/saved-conversations/inspect-native-history.ts"
+          ],
+          "scopeObjectsPresent": true
+        },
+        {
+          "receipt": "pr8463-saved-ui-tests.json",
+          "scope": [
+            "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/SavedConversationsDialog"
+          ],
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": [],
+          "scopeObjectsPresent": true
+        },
+        {
+          "receipt": "pr8461-history-and-resume.json",
+          "scope": [
+            "packages/host-service/src/terminal-agents/saved-conversations/inspect-native-history.ts",
+            "packages/host-service/src/terminal-agents/saved-conversations/inspect-native-history.test.ts"
+          ],
+          "scopeObjectsPresent": true,
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": []
+        }
+      ]
+    },
+    "batch/pr8464": {
+      "head": "a8178dd00e2d216db0afc63839cdf1415910ec6f",
+      "priorPassingGates": [
+        {
+          "receipt": "native-final-host.json",
+          "scope": [
+            "packages/host-service/src/trpc/router/usage"
+          ],
+          "comparedSourceUnchanged": false,
+          "changedScopePaths": [
+            "packages/host-service/src/trpc/router/usage/claude-native.integration.test.ts",
+            "packages/host-service/src/trpc/router/usage/session-account/session-account.test.ts",
+            "packages/host-service/src/trpc/router/usage/session-account/session-account.ts",
+            "packages/host-service/src/trpc/router/usage/types.ts",
+            "packages/host-service/src/trpc/router/usage/usage-quota.test.ts",
+            "packages/host-service/src/trpc/router/usage/usage-quota.ts"
+          ],
+          "scopeObjectsPresent": true
+        }
+      ]
+    },
+    "batch/pr8501": {
+      "head": "7b4d7d837c876085338d7739bc543835b37824d6",
+      "priorPassingGates": []
+    },
+    "batch/floating-appearance-schema": {
+      "head": "6945d651da10e57bede32a576f9fc698cf44b482",
+      "priorPassingGates": [
+        {
+          "receipt": "floating-local-db-gates.json",
+          "scope": [
+            "packages/local-db"
+          ],
+          "comparedSourceUnchanged": true,
+          "changedScopePaths": [],
+          "scopeObjectsPresent": true
+        }
+      ]
+    },
+    "batch/floating-menu": {
+      "head": "8bd4f188b86676251ba3538e339d5d68b6f7f9f1",
+      "priorPassingGates": [
+        {
+          "receipt": "floating-final-full-lint.json",
+          "scope": [
+            "."
+          ],
+          "comparedSourceUnchanged": false,
+          "changedScopePaths": [
+            "bun.lock",
+            "packages/host-service/package.json"
+          ],
+          "scopeObjectsPresent": true
+        },
+        {
+          "receipt": "floating-final-full-types.json",
+          "scope": [
+            "."
+          ],
+          "comparedSourceUnchanged": false,
+          "changedScopePaths": [
+            "bun.lock",
+            "packages/host-service/package.json"
+          ],
+          "scopeObjectsPresent": true
+        },
+        {
+          "receipt": "floating-final-desktop-build.json",
+          "scope": [
+            "."
+          ],
+          "comparedSourceUnchanged": false,
+          "changedScopePaths": [
+            "bun.lock",
+            "packages/host-service/package.json"
+          ],
+          "scopeObjectsPresent": true
+        },
+        {
+          "receipt": "floating-clean-unit.json",
+          "scope": [
+            "apps/desktop/src/shared/usage-widget",
+            "apps/desktop/src/shared/usage-reading.ts",
+            "apps/desktop/src/shared/quota-freshness.ts",
+            "apps/desktop/src/main/lib/usage-widget",
+            "apps/desktop/src/renderer/usage-widget"
+          ],
+          "comparedSourceUnchanged": false,
+          "changedScopePaths": [
+            "apps/desktop/src/main/lib/usage-widget/index.ts",
+            "apps/desktop/src/renderer/usage-widget/components/AccountRow/AccountRow.tsx",
+            "apps/desktop/src/renderer/usage-widget/components/HoverPreview/HoverPreview.tsx",
+            "apps/desktop/src/shared/usage-widget/model.ts",
+            "apps/desktop/src/shared/usage-widget/native-window-live.test.ts"
+          ],
+          "scopeObjectsPresent": true
+        }
+      ],
+      "exactCleanFullSuite": "floating-final-full-tests-bounded.json",
+      "priorGateReuse": "Full lint, full types and desktop build at c336 are unchanged executable/test source; only the reviewed exact smol-toml manifest/lock declaration changed. Exact8bd bounded full suite now passes.",
+      "visualEvidence": "floating-visual-fixture/verification.json"
+    }
+  },
+  "display": {
+    "source": "8bd4f188b86676251ba3538e339d5d68b6f7f9f1",
+    "compiledSource": "c3365648800abb444fb096188a620343ee297970",
+    "onlySubsequentChange": "host manifest and lockfile declaration",
+    "checks": [
+      {
+        "case": "eight",
+        "edgeCount": 8,
+        "menu": true
+      },
+      {
+        "case": "twenty",
+        "edgeCount": 20,
+        "scrollOverflow": false
+      },
+      {
+        "case": "254",
+        "edgeCount": 254,
+        "columns": 10,
+        "scrollOverflow": false,
+        "lastAccountVisible": true
+      },
+      {
+        "case": "hidden",
+        "edgeCount": 7,
+        "summary": "Show hidden \u00b7 1"
+      },
+      {
+        "case": "restored",
+        "edgeCount": 8,
+        "color": "color: rgb(23, 187, 204);"
+      },
+      {
+        "case": "weekly-only-credit-resets",
+        "sessionInvented": false,
+        "amount": 42.35,
+        "resets": 3
+      },
+      {
+        "case": "outage",
+        "edgeCount": 8,
+        "retainedColor": "color: rgb(23, 187, 204);",
+        "notLive": true
+      },
+      {
+        "case": "keyboard-reopen",
+        "passed": true
+      }
+    ],
+    "transport": "synthetic boundary; actual controller/preload/renderer",
+    "limits": [
+      "physical multi-display",
+      "sleep/wake",
+      "authenticated provider replay"
+    ],
+    "appearancePersistedAfterOwnedAppRestart": true
+  },
+  "picker": {
+    "source": "f9cba9e26042cc785304f8e6dffb338326a8657d",
+    "checks": [
+      {
+        "case": "390",
+        "overflow": false
+      },
+      {
+        "case": "320",
+        "overflow": false
+      },
+      {
+        "case": "manual-choice-fresh-refresh",
+        "preserved": true,
+        "usageVisible": true
+      },
+      {
+        "case": "exhausted-unknown",
+        "disabledUntilManualChoice": true
+      },
+      {
+        "case": "confirmed-switch-story",
+        "dialogClosed": true
+      },
+      {
+        "case": "keyboard-launch",
+        "passed": true
+      }
+    ],
+    "pageErrors": [],
+    "externalRequests": [],
+    "transport": "actual source components, synthetic transport; not authenticated cross-account replay"
+  },
+  "nativeContinue": {
+    "startedAt": "2026-10-25T21:50:46.343Z",
+    "cliVersion": "2.1.310",
+    "phase": "complete",
+    "checks": {
+      "immutableAccountCaptured": true,
+      "ownedFolderAlreadyTrusted": true,
+      "workerUnique": true,
+      "workerKernelIdentity": true,
+      "actualTerminalAdmitted": true,
+      "exactNativeAndAccountAdopted": true,
+      "repeatUsesOneSuccessor": true,
+      "oneNewTerminalOnly": true,
+      "workerNeverRestarted": true,
+      "qaReadyVisible": true,
+      "normalDetachPreservesWorker": true
+    },
+    "passed": true,
+    "cleanup": {
+      "ownedWorkerRemoved": true,
+      "ownedTargetClosed": true,
+      "ownedDaemonStopped": true
+    },
+    "finishedAt": "2026-10-25T21:51:25.047Z",
+    "testedSource": "eff65483cdf989e139129ef2cd88ffdcf8689d78",
+    "scope": "One owned terminal background-reconnect RPC on macOS arm64; not ACP account switching."
+  },
+  "limits": [
+    "Hosted CI needs maintainer approval and review; local checks do not replace it.",
+    "CLA completion is a human action and has not been claimed.",
+    "Native Claude session producer remains local and unverified; it is excluded from this batch.",
+    "Live ACP cross-account replay, Linux/x64, physical multi-display and sleep/wake are not claimed.",
+    "No production activation, account rebinding or existing chat/server stop is part of publication."
+  ]
+}
