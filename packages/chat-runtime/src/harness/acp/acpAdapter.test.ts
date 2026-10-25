@@ -2,6 +2,7 @@ import { describe, expect, it, jest } from "bun:test";
 import { spawn } from "node:child_process";
 import type { Item } from "@superset/chat/protocol";
 import { AGENT_DEFAULT_MODE, wrapHiddenText } from "@superset/chat/protocol";
+import { waitFor } from "../../testing/testUtils";
 import type { AdapterEvent } from "../types";
 import {
 	AcpAdapter,
@@ -27,6 +28,10 @@ class FakeAcpAgent {
 	loadError: { code: number; message: string } | null = null;
 	/** Answer nothing, as an agent stuck on a login prompt does. */
 	silent = false;
+	loadSupported = true;
+	sessionSurface: Record<string, unknown> | unknown[] | null = {};
+	loadState: "running" | "requires_action" | null = null;
+	loadResult: Record<string, unknown> | null = null;
 	/** What the agent answers `initialize` with; older agents answer 1. */
 	protocolVersion = 2;
 	/** agentInfo.name reported at initialize, as pdev reports "paradev". */
@@ -308,6 +313,11 @@ class FakeAcpAgent {
 		const resumes =
 			frame.method === "session/load" || frame.method === "session/resume";
 		queueMicrotask(() => {
+			if (resumes && this.loadState)
+				this.notify((frame.params as { sessionId: string }).sessionId, {
+					sessionUpdate: "state_update",
+					state: this.loadState,
+				});
 			if (frame.method === "initialize") {
 				this.respond(frame.id as number, {
 					...(this.agentName
@@ -318,6 +328,8 @@ class FakeAcpAgent {
 						: {}),
 					protocolVersion: this.protocolVersion,
 					capabilities: {
+						loadSession: this.loadSupported,
+						...(this.sessionSurface ? { session: this.sessionSurface } : {}),
 						promptCapabilities: { image: true },
 						...(this.sessionCapabilities
 							? { sessionCapabilities: this.sessionCapabilities }
@@ -361,6 +373,8 @@ class FakeAcpAgent {
 				const sessionId = (frame.params as { sessionId: string }).sessionId;
 				for (const update of this.replayUpdates) this.notify(sessionId, update);
 				this.respond(frame.id as number, null);
+			} else if (resumes && this.loadResult) {
+				this.respond(frame.id as number, this.loadResult);
 			} else if (resumes && this.wholeMessageReplay) {
 				const sessionId = (frame.params as { sessionId: string }).sessionId;
 				this.notify(sessionId, {
@@ -518,6 +532,7 @@ function startAdapter(
 	selections: { modelId?: string; modeId?: string } = {},
 	adapterOptions: Pick<
 		AcpAdapterOptions,
+		| "beforePrompt"
 		| "defaultModeId"
 		| "requestTimeoutMs"
 		| "clientApprovalModes"
@@ -567,6 +582,292 @@ function textOf(item: Item | undefined): string {
 }
 
 describe("AcpAdapter", () => {
+	for (const sessionSurface of [null, []] as const) {
+		it(`refuses exact ACP v2 recovery without a plain session surface: ${JSON.stringify(sessionSurface)}`, async () => {
+			const agent = new FakeAcpAgent();
+			agent.loadSupported = true;
+			agent.sessionSurface = sessionSurface === null ? null : [];
+			const adapter = new AcpAdapter({
+				command: "fake",
+				createTransport: (_opts, handlers) => agent.transport(handlers),
+			});
+			const events: AdapterEvent[] = [];
+			void collect(
+				adapter.start({
+					cwd: "/work",
+					resume: { harnessSessionId: "sess-1", requireExact: true },
+				}),
+				events,
+			);
+			await waitFor(() => sessionsOf(events).at(-1)?.status === "dead");
+			expect(agent.sent.map((frame) => frame.method)).toEqual(["initialize"]);
+			await adapter.dispose();
+		});
+	}
+
+	it("Cancel while account validation is pending never dispatches the held prompt", async () => {
+		const agent = new FakeAcpAgent();
+		let release!: () => void;
+		const validation = new Promise<void>((resolve) => {
+			release = resolve;
+		});
+		let validating = false;
+		const { adapter, events } = startAdapter(
+			agent,
+			undefined,
+			{},
+			{
+				beforePrompt: async () => {
+					validating = true;
+					await validation;
+				},
+			},
+		);
+		await waitFor(() => sessionsOf(events).at(-1)?.status === "idle");
+		adapter.prompt([{ type: "text", text: "must not be sent" }]);
+		await waitFor(() => validating);
+		adapter.cancelTurn();
+		release();
+		await flush(30);
+		expect(agent.sent.some((frame) => frame.method === "session/prompt")).toBe(
+			false,
+		);
+		expect(sessionsOf(events).at(-1)?.status).toBe("idle");
+		expect(
+			events.filter((event) => event.kind === "turn").at(-1),
+		).toMatchObject({ kind: "turn", turn: { status: "interrupted" } });
+		await adapter.dispose();
+	});
+
+	it("a turn completed during account validation cannot receive stale steering", async () => {
+		const agent = new FakeAcpAgent();
+		agent.insertOnPrompt = true;
+		agent.steeringOutcome = "injected";
+		let release!: () => void;
+		const validation = new Promise<void>((resolve) => {
+			release = resolve;
+		});
+		let checks = 0;
+		let steeringValidation = false;
+		const { adapter, events } = startAdapter(
+			agent,
+			undefined,
+			{},
+			{
+				beforePrompt: async () => {
+					if (++checks > 1) {
+						steeringValidation = true;
+						await validation;
+					}
+				},
+			},
+		);
+		await waitFor(() => sessionsOf(events).at(-1)?.status === "idle");
+		adapter.prompt([{ type: "text", text: "first" }]);
+		await waitFor(() => adapter.canSteer());
+		const pending = adapter.steer([{ type: "text", text: "stale steer" }]);
+		await waitFor(() => steeringValidation);
+		agent.notify("sess-1", {
+			sessionUpdate: "state_update",
+			state: "idle",
+			stopReason: "end_turn",
+		});
+		await flush(20);
+		release();
+		expect(await pending).toBe(false);
+		expect(
+			agent.sent.filter((frame) => frame.method === "session/prompt"),
+		).toHaveLength(1);
+		expect(
+			agent.sent.some((frame) => frame.method === "_session/steering"),
+		).toBe(false);
+		await adapter.dispose();
+	});
+
+	it("keeps ACP v2's synchronized running state after exact resume", async () => {
+		const agent = new FakeAcpAgent();
+		agent.sessionSurface = {};
+		agent.loadSupported = false;
+		agent.loadState = "running";
+		const adapter = new AcpAdapter({
+			command: "fake",
+			createTransport: (_opts, handlers) => agent.transport(handlers),
+		});
+		const events: AdapterEvent[] = [];
+		void collect(
+			adapter.start({
+				cwd: "/work",
+				resume: { harnessSessionId: "sess-1", requireExact: true },
+			}),
+			events,
+		);
+		await waitFor(() =>
+			sessionsOf(events).some(
+				(session) => session.harnessSessionId === "sess-1",
+			),
+		);
+		expect(sessionsOf(events).at(-1)?.status).toBe("running");
+		expect(agent.sent.some((frame) => frame.method === "session/prompt")).toBe(
+			false,
+		);
+		await adapter.dispose();
+	});
+
+	it("exact ACP v2 resume uses the session surface without legacy loadSession", async () => {
+		const agent = new FakeAcpAgent();
+		agent.loadSupported = false;
+		agent.sessionSurface = {};
+		const adapter = new AcpAdapter({
+			command: "fake",
+			createTransport: (_opts, handlers) => agent.transport(handlers),
+		});
+		const events: AdapterEvent[] = [];
+		void collect(
+			adapter.start({
+				cwd: "/work",
+				resume: { harnessSessionId: "sess-1", requireExact: true },
+			}),
+			events,
+		);
+		await waitFor(() => sessionsOf(events).at(-1)?.status === "idle");
+		expect(agent.sent.some((frame) => frame.method === "session/resume")).toBe(
+			true,
+		);
+		expect(agent.sent.some((frame) => frame.method === "session/new")).toBe(
+			false,
+		);
+		expect(sessionsOf(events).at(-1)?.harnessSessionId).toBe("sess-1");
+		await adapter.dispose();
+	});
+
+	it("revalidates account identity before the ACP v2 prompt steering path", async () => {
+		const agent = new FakeAcpAgent();
+		agent.insertOnPrompt = true;
+		agent.steeringOutcome = "injected";
+		let valid = true;
+		const adapter = new AcpAdapter({
+			command: "fake",
+			createTransport: (_opts, handlers) => agent.transport(handlers),
+			beforePrompt: async () => {
+				if (!valid) throw new Error("account changed");
+			},
+		});
+		const events: AdapterEvent[] = [];
+		void collect(adapter.start({ cwd: "/work" }), events);
+		await flush();
+		adapter.prompt([{ type: "text", text: "first" }]);
+		await flush();
+		valid = false;
+		await expect(
+			adapter.steer([{ type: "text", text: "second" }]),
+		).rejects.toThrow("account changed");
+		expect(
+			agent.sent.filter((frame) => frame.method === "session/prompt"),
+		).toHaveLength(1);
+		await adapter.dispose();
+	});
+
+	for (const failure of [
+		"missing-capability",
+		"load-error",
+		"different-id",
+		"malformed-metadata",
+	] as const) {
+		it(`exact recovery refuses ${failure} without starting or prompting a different session`, async () => {
+			const agent = new FakeAcpAgent();
+			agent.loadSupported = failure !== "missing-capability";
+			if (failure === "missing-capability") agent.sessionSurface = null;
+			agent.loadFails = failure === "load-error";
+			if (failure === "different-id")
+				agent.loadResult = { sessionId: "foreign" };
+			if (failure === "malformed-metadata")
+				agent.loadResult = { sessionId: "foreign", modes: false };
+			const adapter = new AcpAdapter({
+				command: "fake",
+				createTransport: (_opts, handlers) => agent.transport(handlers),
+			});
+			const events: AdapterEvent[] = [];
+			void collect(
+				adapter.start({
+					cwd: "/work",
+					resume: { harnessSessionId: "sess-1", requireExact: true },
+				}),
+				events,
+			);
+			adapter.prompt([{ type: "text", text: "held" }]);
+			await flush();
+			expect(agent.sent.map((frame) => frame.method)).not.toContain(
+				"session/new",
+			);
+			expect(agent.sent.map((frame) => frame.method)).not.toContain(
+				"session/prompt",
+			);
+			expect(sessionsOf(events).at(-1)?.status).toBe("dead");
+			await adapter.dispose();
+		});
+	}
+
+	for (const variant of ["user_message", "user_message_chunk"] as const) {
+		it(`ignores foreign ${variant} during exact history replay`, async () => {
+			const agent = new FakeAcpAgent();
+			agent.foreignUpdateDuringLoad = {
+				sessionUpdate: variant,
+				content:
+					variant === "user_message"
+						? [{ type: "text", text: "foreign history" }]
+						: { type: "text", text: "foreign history" },
+			};
+			const adapter = new AcpAdapter({
+				command: "fake",
+				createTransport: (_opts, handlers) => agent.transport(handlers),
+			});
+			const events: AdapterEvent[] = [];
+			void collect(
+				adapter.start({
+					cwd: "/work",
+					resume: { harnessSessionId: "sess-1", requireExact: true },
+				}),
+				events,
+			);
+			await waitFor(() => sessionsOf(events).at(-1)?.status === "idle");
+			expect(JSON.stringify(itemsOf(events))).not.toContain("foreign history");
+			expect(sessionsOf(events).at(-1)?.status).toBe("idle");
+			await adapter.dispose();
+		});
+	}
+
+	it("revalidates a selected account before prompt and steering", async () => {
+		const agent = new FakeAcpAgent();
+		agent.holdPrompts = true;
+		agent.steeringOutcome = "injected";
+		let valid = true;
+		const adapter = new AcpAdapter({
+			command: "fake",
+			createTransport: (_opts, handlers) => agent.transport(handlers),
+			beforePrompt: async () => {
+				if (!valid) throw new Error("account changed");
+			},
+		});
+		const events: AdapterEvent[] = [];
+		void collect(adapter.start({ cwd: "/work" }), events);
+		await flush();
+		adapter.prompt([{ type: "text", text: "first" }]);
+		await flush();
+		valid = false;
+		await expect(
+			adapter.steer([{ type: "text", text: "second" }]),
+		).rejects.toThrow("account changed");
+		expect(
+			agent.sent.filter((frame) => frame.method === "_session/steering"),
+		).toHaveLength(0);
+		adapter.prompt([{ type: "text", text: "third" }]);
+		await flush();
+		expect(
+			agent.sent.filter((frame) => frame.method === "session/prompt"),
+		).toHaveLength(1);
+		await adapter.dispose();
+	});
+
 	it("bootstraps, streams a turn, and maps items", async () => {
 		const agent = new FakeAcpAgent();
 		let counter = 0;
@@ -3978,6 +4279,34 @@ describe("AcpAdapter on protocol v2", () => {
 			).toEqual({ sessionId: "child-1" });
 			expect(await adapter.stopBackgroundTask("subagent:child-2")).toBe(false);
 
+			await adapter.dispose();
+		});
+
+		it("revalidates the account before a child session prompt", async () => {
+			const agent = new FakeAcpAgent();
+			let valid = true;
+			const { adapter } = startAdapter(
+				agent,
+				undefined,
+				{},
+				{
+					beforePrompt: async () => {
+						if (!valid) throw new Error("account changed");
+					},
+				},
+			);
+			await flush();
+			agent.notify("sess-1", announce("child-1"));
+			await flush();
+			valid = false;
+			await expect(
+				adapter.steerSubagent("subagent:child-1", [
+					{ type: "text", text: "continue" },
+				]),
+			).rejects.toThrow("account changed");
+			expect(
+				agent.sent.some((frame) => frame.method === "session/prompt"),
+			).toBe(false);
 			await adapter.dispose();
 		});
 
