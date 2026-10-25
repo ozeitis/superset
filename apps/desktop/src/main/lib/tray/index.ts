@@ -12,6 +12,7 @@ import {
 import { loadToken } from "lib/trpc/routers/auth/utils/auth-functions";
 import { env } from "main/env.main";
 import { focusMainWindow, quitApp } from "main/index";
+import { getAppDisplayName } from "main/lib/app-display-name";
 import { checkForUpdatesInteractive } from "main/lib/auto-updater";
 import {
 	getHostServiceCoordinator,
@@ -20,6 +21,13 @@ import {
 } from "main/lib/host-service-coordinator";
 import { menuEmitter } from "main/lib/menu-events";
 import { confirmAndQuitCompletely } from "main/lib/quit-completely";
+import {
+	disposeUsageWidget,
+	initUsageWidget,
+	refreshUsageWidgetDisplay,
+	showUsageWidget,
+	usageWidgetSnapshot,
+} from "main/lib/usage-widget";
 
 /** Must have "Template" suffix for macOS dark/light mode support */
 const TRAY_ICON_FILENAME = "iconTemplate.png";
@@ -54,6 +62,11 @@ function getTrayIconPath(): string | null {
 }
 
 let tray: Tray | null = null;
+let trayMenu: Menu | undefined;
+let initialized = false;
+const handleHostStatus = (_event: HostServiceStatusEvent) => {
+	void updateTrayMenu();
+};
 
 function createTrayIcon(): Electron.NativeImage | null {
 	const iconPath = getTrayIconPath();
@@ -256,6 +269,7 @@ async function updateTrayMenu(): Promise<void> {
 
 	const hostServiceSubmenu = buildHostServiceSubmenu(orgIds, infos);
 
+	const displayName = getAppDisplayName();
 	const menu = Menu.buildFromTemplate([
 		{
 			label: hostServiceLabel,
@@ -263,7 +277,7 @@ async function updateTrayMenu(): Promise<void> {
 		},
 		{ type: "separator" },
 		{
-			label: i18n._(msg({ message: "Open Superset" })),
+			label: i18n._(msg({ message: `Open ${displayName}` })),
 			click: focusMainWindow,
 		},
 		{
@@ -282,14 +296,14 @@ async function updateTrayMenu(): Promise<void> {
 		},
 		{ type: "separator" },
 		{
-			label: i18n._(msg({ message: "Close Superset" })),
+			label: i18n._(msg({ message: `Close ${displayName}` })),
 			click: () => quitApp(),
 		},
 		{ type: "separator" },
 		{
 			label: i18n._(
 				msg({
-					message: "Quit Superset Completely",
+					message: `Quit ${displayName} Completely`,
 				}),
 			),
 			click: () => {
@@ -298,18 +312,22 @@ async function updateTrayMenu(): Promise<void> {
 		},
 	]);
 
-	tray.setContextMenu(menu);
+	trayMenu = menu;
+	tray.setContextMenu(
+		usageWidgetSnapshot().preferences.menuBar === "logo" ? null : menu,
+	);
 }
 
 /** Rebuild the tray menu in place (e.g. after the display language changes). */
 export function refreshTrayMenu(): void {
 	if (!tray) return;
+	refreshUsageWidgetDisplay();
 	void updateTrayMenu();
 }
 
 /** Call once after app.whenReady() */
 export function initTray(): void {
-	if (tray) {
+	if (initialized) {
 		console.warn("[Tray] Already initialized");
 		return;
 	}
@@ -318,6 +336,10 @@ export function initTray(): void {
 		return;
 	}
 
+	initialized = true;
+	initUsageWidget(() => {
+		void updateTrayMenu();
+	});
 	try {
 		const icon = createTrayIcon();
 		if (!icon) {
@@ -326,13 +348,23 @@ export function initTray(): void {
 		}
 
 		tray = new Tray(icon);
-		tray.setToolTip("Superset");
+		tray.setToolTip(getAppDisplayName());
 
 		void updateTrayMenu();
 
 		const manager = getHostServiceCoordinator();
-		manager.on("status-changed", (_event: HostServiceStatusEvent) => {
-			void updateTrayMenu();
+		manager.on("status-changed", handleHostStatus);
+		tray.on("click", () => {
+			if (tray && usageWidgetSnapshot().preferences.menuBar === "logo")
+				showUsageWidget(tray.getBounds());
+		});
+		tray.on("right-click", () => {
+			if (
+				tray &&
+				trayMenu &&
+				usageWidgetSnapshot().preferences.menuBar === "logo"
+			)
+				tray.popUpContextMenu(trayMenu);
 		});
 
 		tray.on("mouse-enter", () => {
@@ -347,6 +379,11 @@ export function initTray(): void {
 
 /** Call on app quit */
 export function disposeTray(): void {
+	if (!initialized) return;
+	initialized = false;
+	disposeUsageWidget();
+	getHostServiceCoordinator().off("status-changed", handleHostStatus);
+	trayMenu = undefined;
 	if (tray) {
 		tray.destroy();
 		tray = null;

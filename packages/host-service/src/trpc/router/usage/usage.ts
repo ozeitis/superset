@@ -19,6 +19,8 @@ import {
 import { fetchAgyAccounts } from "./agy-quota";
 import {
 	captureClaudeQuotaSnapshot,
+	disposeClaudeQuotaCollection,
+	onClaudeQuotaUpdate,
 	readClaudeLoginFingerprint,
 	readDefaultLoginEmail,
 } from "./claude";
@@ -29,6 +31,7 @@ import {
 } from "./default-account";
 import { fetchGrokAccounts } from "./grok-quota";
 import { countAgentPrsByDay } from "./history/agent-prs";
+import { onNativeClaudeUsage } from "./native-claude-usage";
 import { fetchOpencodeAccounts } from "./opencode-quota";
 import { removeClaudeProfile, removeCodexHome } from "./profile-remove";
 import {
@@ -36,43 +39,76 @@ import {
 	discoverCodexHomes,
 	readCodexProfileKind,
 } from "./profiles";
-import { createQuotaCache } from "./quota-cache";
+import { createQuotaResetTracker } from "./quota-reset-tracker";
+import { resetMetadata } from "./quota-widget-metadata";
 import { validateSessionAccount } from "./session-account/session-account";
+import { createUsageQuotaReader } from "./usage-quota";
+import { projectWidgetQuotaMetadata } from "./widget-quota-metadata";
 
-/**
- * Agent quota endpoints are undocumented and rate-limit-sensitive, so
- * results are cached briefly and concurrent callers share one in-flight
- * request. Credential inputs are captured before checking the cache and
- * checked again after fetching; failures are not cached for the TTL.
- */
-// >=5 min: Anthropic 429-blacklists faster pollers of the oauth/usage
-// endpoint (ccusage deprecated its live gauge over this; CodexBar #30930).
-const QUOTA_CACHE_TTL_MS = 5 * 60 * 1000;
+const quotaResetTracker = createQuotaResetTracker();
 
-const quotaCache = createQuotaCache(async () => {
-	const [claude, codex] = await Promise.all([
-		captureClaudeQuotaSnapshot(),
-		captureCodexQuotaSnapshot(),
-	]);
-	return {
-		revision: JSON.stringify([claude.revision, codex.revision]),
-		load: () =>
-			Promise.all([
-				claude.load(),
-				codex.load(),
-				fetchGrokAccounts(),
-				fetchAgyAccounts(),
-				fetchOpencodeAccounts(),
-			]).then((groups) => groups.flat()),
-	};
-}, QUOTA_CACHE_TTL_MS);
-const getQuota = quotaCache.get;
+let quotaCache: ReturnType<typeof createUsageQuotaReader> | undefined;
+function getQuotaReader() {
+	if (!quotaCache)
+		quotaCache = createUsageQuotaReader([
+			{
+				agent: "claude",
+				capture: captureClaudeQuotaSnapshot,
+				subscribe: (listener) => {
+					const stopHttp = onClaudeQuotaUpdate(listener);
+					const stopNative = onNativeClaudeUsage(listener);
+					return () => {
+						stopHttp();
+						stopNative();
+					};
+				},
+				dispose: disposeClaudeQuotaCollection,
+			},
+			{ agent: "codex", capture: captureCodexQuotaSnapshot },
+			{
+				agent: "grok",
+				capture: async () => ({
+					revision: "grok",
+					load: () => fetchGrokAccounts(),
+				}),
+			},
+			{
+				agent: "agy",
+				capture: async () => ({
+					revision: "agy",
+					load: () => fetchAgyAccounts(),
+				}),
+			},
+			{
+				agent: "opencode",
+				capture: async () => ({
+					revision: "opencode",
+					load: (forceRefresh = false) =>
+						fetchOpencodeAccounts(undefined, forceRefresh),
+				}),
+			},
+		]);
+	return quotaCache;
+}
+const getQuota = (forceRefresh: boolean) => getQuotaReader().get(forceRefresh);
+export async function disposeUsageQuota() {
+	const retiring = quotaCache;
+	quotaCache = undefined;
+	await retiring?.dispose();
+	quotaResetTracker.clear();
+	resetMetadata.clear();
+}
 
 export const leaderboardPayloadInput = z.object({
 	days: z.number().int().min(1).max(MAX_BACKFILL_DAYS),
 });
 
 export const usageRouter = router({
+	claimQuotaResetNotices: protectedProcedure
+		.input(
+			z.object({ ids: z.array(z.string().regex(/^[a-f0-9]{64}$/)).max(512) }),
+		)
+		.mutation(({ input }) => quotaResetTracker.claim(input.ids)),
 	sessionAccount: queryProcedure
 		.input(
 			z.object({
@@ -110,15 +146,17 @@ export const usageRouter = router({
 			// isDefault is applied per query, not cached with the quota: changing
 			// the default must reflect immediately without re-hitting providers.
 			const defaults = getDefaultAccountSelections(ctx.db);
-			return accounts.map((account) => ({
-				...account,
-				isDefault:
-					account.agent === "claude"
-						? account.selection === defaults.claudeConfigDir
-						: account.agent === "codex"
-							? account.selection === defaults.codexHome
-							: false,
-			}));
+			return quotaResetTracker.observe(
+				accounts.map((account) => ({
+					...projectWidgetQuotaMetadata(account),
+					isDefault:
+						account.agent === "claude"
+							? account.selection === defaults.claudeConfigDir
+							: account.agent === "codex"
+								? account.selection === defaults.codexHome
+								: false,
+				})),
+			);
 		}),
 
 	/**
@@ -270,7 +308,9 @@ export const usageRouter = router({
 			}
 			// The quota cache still lists the removed account; drop it so the
 			// next query re-discovers.
-			quotaCache.invalidate();
+			getQuotaReader().invalidate();
+			quotaResetTracker.clear();
+			resetMetadata.clear();
 			return { success: true as const };
 		}),
 

@@ -28,6 +28,7 @@ import { homedir, platform, userInfo } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { resolveAmbientCodexHome } from "@superset/agent-setup";
+import { assertCodexFileCredentialStore } from "./codex-quota-config";
 import { readProfileFile } from "./profile-file";
 import {
 	parseQuotaCredentialJson,
@@ -248,7 +249,7 @@ export async function readKeychainSecrets(
 			const { stdout } = await execFileAsync(
 				"security",
 				["find-generic-password", ...scope, "-s", service, "-w"],
-				{ timeout: 5_000, maxBuffer: 1024 * 1024 },
+				{ timeout: strict ? 750 : 5_000, maxBuffer: 1024 * 1024 },
 			);
 			return stdout;
 		},
@@ -261,6 +262,20 @@ export async function collectKeychainSecrets(
 	read: (scope: string[]) => Promise<string>,
 	strict: boolean,
 ): Promise<string[]> {
+	if (strict) {
+		const groups = await Promise.all(
+			scopes.map((scope) =>
+				read(scope).then(
+					(value) => (value.trim() ? [value.trim()] : []),
+					(error: unknown) => {
+						if ((error as { code?: unknown }).code === 44) return [];
+						throw new QuotaCredentialReadError();
+					},
+				),
+			),
+		);
+		return [...new Set(groups.flat())];
+	}
 	const secrets: string[] = [];
 	for (const scope of scopes) {
 		try {
@@ -314,15 +329,21 @@ async function readCodexQuotaProfileKind(
 	CodexHome,
 	"credentialKind" | "loginFingerprint" | "quotaUnavailable"
 > | null> {
-	const kind = await readCodexProfileKind(codexHome);
-	if (kind) return kind;
+	const apiFingerprint = await readApiBillingFingerprint(codexHome, "codex");
+	if (apiFingerprint)
+		return { credentialKind: "api_key", loginFingerprint: apiFingerprint };
 	try {
+		await assertCodexFileCredentialStore(codexHome);
 		const file = await readQuotaCredentialFile(join(codexHome, "auth.json"));
 		if (!file) return null;
-		// Readable signed-out and unmarked API-key homes remain excluded.
-		// A malformed/unreadable existing auth file gets an unavailable card.
-		parseQuotaCredentialJson(file);
-		return null;
+		const parsed = parseQuotaCredentialJson(file);
+		if (parsed.tokens === undefined || parsed.tokens === null) return null;
+		if (typeof parsed.tokens !== "object" || Array.isArray(parsed.tokens))
+			throw new QuotaCredentialReadError();
+		const token = (parsed.tokens as Record<string, unknown>).access_token;
+		if (typeof token !== "string" || !token.trim())
+			throw new QuotaCredentialReadError();
+		return { credentialKind: "subscription", loginFingerprint: null };
 	} catch {
 		return {
 			credentialKind: "subscription",
@@ -352,7 +373,9 @@ export async function discoverCodexHomes(
 ): Promise<CodexHome[]> {
 	const home = homedir();
 	const defaultHome = options.defaultHome ?? resolveAmbientCodexHome(home);
-	const defaultKind = (await readCodexProfileKind(defaultHome)) ?? {
+	const defaultKind = (await (options.includeUnavailable
+		? readCodexQuotaProfileKind(defaultHome)
+		: readCodexProfileKind(defaultHome))) ?? {
 		credentialKind: "subscription" as const,
 		loginFingerprint: null,
 	};

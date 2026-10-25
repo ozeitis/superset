@@ -14,6 +14,32 @@ describe("TerminalAgentStore", () => {
 		store = new TerminalAgentStore();
 	});
 
+	it("reports every hook event as activity, a subagent's included, even when the status does not change", () => {
+		let activity = 0;
+		store.on("activity", () => {
+			activity += 1;
+		});
+		for (const occurredAt of [1, 2, 3]) {
+			store.recordEvent({
+				terminalId: "t1",
+				workspaceId: WORKSPACE,
+				eventType: "Start",
+				agentId: "claude",
+				occurredAt,
+			});
+		}
+		expect(activity).toBe(3);
+
+		store.recordSubagentEvent({
+			terminalId: "t1",
+			workspaceId: WORKSPACE,
+			eventType: "SubagentStart",
+			subagentId: "a1",
+			occurredAt: 4,
+		});
+		expect(activity).toBe(4);
+	});
+
 	describe("subagent roster", () => {
 		// Roster staleness is measured against the wall clock.
 		const NOW = Date.now();
@@ -899,4 +925,35 @@ describe("session account attribution", () => {
 		store.recordChatEvent({ ...chat, eventType: "Stop", occurredAt: 2 });
 		expect(store.listByWorkspace("ws-account")[0]?.account).toEqual(account);
 	});
+});
+
+it("does not transfer in-memory account provenance when the terminal moves to another workspace", () => {
+	const store = new TerminalAgentStore();
+	const launch = {
+		terminalId: "moved",
+		workspaceId: "one",
+		agentId: "claude" as const,
+		agentSessionId: "native",
+		launchId: "launch",
+		eventType: "Attached",
+		occurredAt: 1,
+	};
+	store.recordEvent({
+		...launch,
+		account: {
+			agent: "claude",
+			selection: "/fixture/profile",
+			credentialKind: "subscription",
+			identity: "a".repeat(64),
+			pinned: true,
+		},
+	});
+	store.recordEvent({
+		...launch,
+		workspaceId: "two",
+		eventType: "Start",
+		occurredAt: 2,
+	});
+	expect(store.get("moved")?.workspaceId).toBe("two");
+	expect(store.get("moved")?.account).toBeUndefined();
 });

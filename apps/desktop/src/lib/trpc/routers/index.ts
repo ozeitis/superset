@@ -8,11 +8,13 @@ import { createBrowserHistoryRouter } from "./browser-history";
 import { createChangesRouter } from "./changes";
 import { createConfigRouter } from "./config";
 import { createDeviceRouter } from "./device";
+import { createDictationRouter } from "./dictation";
 import { createDownloadsRouter } from "./downloads";
 import { createExternalRouter } from "./external";
 import { createFilesystemRouter } from "./filesystem";
 import { createGithubStarRouter } from "./github-star";
 import { createHostServiceCoordinatorRouter } from "./host-service-coordinator";
+import { createHostUsageRouter } from "./host-usage";
 import { createKeyboardLayoutRouter } from "./keyboardLayout";
 import { createMenuRouter } from "./menu";
 import { createMigrationRouter } from "./migration";
@@ -30,6 +32,7 @@ import { createSettingsRouter } from "./settings";
 import { createSystemRouter } from "./system";
 import { createTerminalRouter } from "./terminal";
 import { createUiStateRouter } from "./ui-state";
+import { createUsageWidgetRouter } from "./usage-widget";
 import { createWindowRouter } from "./window";
 import { createWorkspacesRouter } from "./workspaces";
 
@@ -62,9 +65,12 @@ export const createAppRouter = (getWindow: () => BrowserWindow | null) => {
 		system: createSystemRouter(),
 		config: createConfigRouter(),
 		device: createDeviceRouter(),
+		dictation: createDictationRouter(),
 		uiState: createUiStateRouter(),
 		ringtone: createRingtoneRouter(getWindow),
 		hostServiceCoordinator: createHostServiceCoordinatorRouter(),
+		hostUsage: createHostUsageRouter(),
+		usageWidget: createUsageWidgetRouter(),
 		keyboardLayout: createKeyboardLayoutRouter(),
 		migration: createMigrationRouter(),
 	});

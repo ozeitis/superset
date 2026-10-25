@@ -12,6 +12,7 @@ import {
 	captureSessionAccount,
 	sameSessionAccountContext,
 } from "../usage/session-account/session-account";
+import { queueBackgroundSuccessorRefresh } from "./background-successor-adapter";
 import { fanOutAgentLifecycle } from "./fan-out-agent-lifecycle";
 import { showDesktopNotification } from "./show-desktop-notification";
 
@@ -77,6 +78,7 @@ function normalizeAgentIdentity(
 
 export function createNotificationsRouter(
 	captureAccount = captureSessionAccount,
+	backgroundRefresh = queueBackgroundSuccessorRefresh,
 ) {
 	return router({
 		/** A notification sent with `superset notifications show`, shown by the attached desktop app. */
@@ -115,6 +117,32 @@ export function createNotificationsRouter(
 				.sync();
 			if (!terminalSession?.originWorkspaceId) {
 				return { success: true, ignored: true as const };
+			}
+
+			// An authenticated predecessor hook only triggers a fresh native read.
+			// Its old event, preview and receipt timestamp never become successor data.
+			const predecessor = ctx.terminalAgentStore.getProvenance(
+				input.terminalId,
+			);
+			const predecessorAgent = normalizeAgentIdentity(input.agent);
+			if (
+				predecessor?.endReason === "resumed" &&
+				predecessor.agentId === "claude" &&
+				predecessor.endedAt !== undefined &&
+				predecessorAgent?.agentId === "claude" &&
+				predecessorAgent.sessionId === predecessor.agentSessionId &&
+				input.launchId === predecessor.launchId &&
+				input.launchId &&
+				predecessorAgent.sessionId &&
+				verifyAttributionToken(input.terminalId, input.attributionToken)
+			) {
+				const accepted = await backgroundRefresh(ctx, {
+					terminalId: input.terminalId,
+					launchId: input.launchId,
+					sessionId: predecessorAgent.sessionId,
+					attributionToken: input.attributionToken,
+				}).catch(() => false);
+				if (accepted) return { success: true, ignored: false as const };
 			}
 
 			const occurredAt = Date.now();
@@ -156,7 +184,7 @@ export function createNotificationsRouter(
 			const agent = normalizeAgentIdentity(input.agent);
 			const preview = trimOrUndefined(input.preview);
 
-			const prior = ctx.terminalAgentStore.get(input.terminalId);
+			const prior = ctx.terminalAgentStore.getProvenance(input.terminalId);
 			const verifiedAttribution = verifyAttributionToken(
 				input.terminalId,
 				input.attributionToken,
@@ -164,9 +192,21 @@ export function createNotificationsRouter(
 			if (
 				(prior?.account?.pinned || prior?.accountInvalid) &&
 				!verifiedAttribution &&
-				((agent?.agentId && agent.agentId !== prior.agentId) ||
+				(eventType === "Detached" ||
+					(agent?.agentId && agent.agentId !== prior.agentId) ||
 					(input.launchId && input.launchId !== prior.launchId) ||
 					(agent?.sessionId && agent.sessionId !== prior.agentSessionId))
+			)
+				return { success: true, ignored: true as const };
+			if (
+				prior?.endedAt !== undefined &&
+				(prior.account?.pinned || prior.accountInvalid) &&
+				(!verifiedAttribution ||
+					!agent?.sessionId ||
+					!trimOrUndefined(input.launchId) ||
+					((prior.endReason === "resumed" || prior.endReason === "disposed") &&
+						(prior.launchId === input.launchId ||
+							prior.agentSessionId === agent?.sessionId)))
 			)
 				return { success: true, ignored: true as const };
 			const shouldCaptureAccount =
@@ -190,9 +230,12 @@ export function createNotificationsRouter(
 			let binding = prior;
 			let metadataOnly = false;
 			if (shouldCaptureAccount) {
-				const current = ctx.terminalAgentStore.get(input.terminalId);
+				const current = ctx.terminalAgentStore.getProvenance(input.terminalId);
 				const sameOwner = prior
 					? current &&
+						current.workspaceId === prior.workspaceId &&
+						current.endedAt === prior.endedAt &&
+						current.endReason === prior.endReason &&
 						current.agentId === prior.agentId &&
 						current.launchId === prior.launchId &&
 						current.definitionId === prior.definitionId &&

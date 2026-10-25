@@ -247,3 +247,45 @@ test("explicit invalidation refuses an earlier pending request", async () => {
 	response.resolve("A");
 	expect(await result).toContain("changed during");
 });
+
+test("background completion expires a placeholder without invalidating credential authority", async () => {
+	let loads = 0;
+	const cache = createQuotaCache(
+		async () => ({
+			revision: "unchanged-owner",
+			load: async () => ++loads,
+		}),
+		300_000,
+		() => 1000,
+	);
+	expect(await cache.get()).toBe(1);
+	cache.expire();
+	expect(await cache.get()).toBe(2);
+});
+
+test("completion during a pending placeholder load cannot make that placeholder fresh", async () => {
+	let loads = 0;
+	let release!: () => void;
+	const pending = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	const cache = createQuotaCache(
+		async () => ({
+			revision: "unchanged-owner",
+			load: async () => {
+				const result = ++loads;
+				if (result === 1) await pending;
+				return result;
+			},
+		}),
+		300_000,
+		() => 1000,
+		{ isFailure: () => true },
+	);
+	const first = cache.get();
+	for (let tick = 0; tick < 20 && loads === 0; tick++) await Promise.resolve();
+	cache.expire();
+	release();
+	expect(await first).toBe(1);
+	expect(await cache.get()).toBe(2);
+});

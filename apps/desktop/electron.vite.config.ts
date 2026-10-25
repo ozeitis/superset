@@ -73,7 +73,7 @@ export default defineConfig({
 			),
 			"process.env.NEXT_PUBLIC_API_URL": defineEnv(
 				process.env.NEXT_PUBLIC_API_URL,
-				`https://api.${rootDomain}`,
+				"https://api.superset.sh",
 			),
 			"process.env.NEXT_PUBLIC_STREAMS_URL": defineEnv(
 				process.env.NEXT_PUBLIC_STREAMS_URL,
@@ -120,6 +120,10 @@ export default defineConfig({
 			),
 			"process.env.SUPERSET_WORKSPACE_NAME": defineEnv(
 				process.env.SUPERSET_WORKSPACE_NAME,
+			),
+			"process.env.DESKTOP_DISPLAY_NAME": defineEnv(
+				process.env.DESKTOP_DISPLAY_NAME,
+				"",
 			),
 		},
 
@@ -185,6 +189,7 @@ export default defineConfig({
 			rollupOptions: {
 				input: {
 					index: resolve("src/preload/index.ts"),
+					"usage-widget": resolve("src/preload/usage-widget.ts"),
 				},
 			},
 		},
@@ -200,7 +205,7 @@ export default defineConfig({
 			"process.platform": defineEnv(process.platform),
 			"process.env.NEXT_PUBLIC_API_URL": defineEnv(
 				process.env.NEXT_PUBLIC_API_URL,
-				`https://api.${rootDomain}`,
+				"https://api.superset.sh",
 			),
 			"process.env.NEXT_PUBLIC_WEB_URL": defineEnv(
 				process.env.NEXT_PUBLIC_WEB_URL,
@@ -289,6 +294,7 @@ export default defineConfig({
 
 				input: {
 					index: resolve("src/renderer/index.html"),
+					"usage-widget": resolve("src/renderer/usage-widget.html"),
 				},
 			},
 		},

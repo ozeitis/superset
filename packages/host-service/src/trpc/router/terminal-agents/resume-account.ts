@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { isAbsolute } from "node:path";
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, isNull, ne, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, like, ne, or } from "drizzle-orm";
 import type { HostDb } from "../../../db";
 import {
 	savedConversations,
@@ -10,6 +10,7 @@ import {
 } from "../../../db/schema";
 import type { EventBus } from "../../../events";
 import { resolveHostAgentConfig } from "../../../terminal-agents/agent-config";
+import { claimNativeSession } from "../../../terminal-agents/native-session-lease";
 import { validateAccountAuthRouting } from "../agents/account-auth-routing";
 import type { AgentRunInput, AgentRunResult } from "../agents/agents";
 import {
@@ -17,8 +18,12 @@ import {
 	type LaunchAccountChoice,
 	resolveLaunchAccount,
 } from "../agents/launch-account";
-import { parsePersistedSessionAccount } from "../usage/session-account/session-account";
 import {
+	parsePersistedSessionAccount,
+	sameSessionAccountContext,
+} from "../usage/session-account/session-account";
+import {
+	assertAccountResumeHistoryCurrent,
 	inspectAccountResumeHistory,
 	sameAccountResumeHistory,
 } from "./account-resume-history";
@@ -138,6 +143,7 @@ export function accountResumeSource(
 function assertNoCompetingBinding(
 	db: HostDb,
 	source: typeof terminalAgentBindings.$inferSelect,
+	authorizedSuccessorTerminalId?: string,
 ): void {
 	const competing = db
 		.select({ terminalId: terminalAgentBindings.terminalId })
@@ -150,8 +156,12 @@ function assertNoCompetingBinding(
 					source.agentSessionId as string,
 				),
 				ne(terminalAgentBindings.terminalId, source.terminalId),
+				authorizedSuccessorTerminalId
+					? ne(terminalAgentBindings.terminalId, authorizedSuccessorTerminalId)
+					: undefined,
 				or(
 					inArray(terminalAgentBindings.endReason, PREPARING_REASONS),
+					like(terminalAgentBindings.endReason, "background-attach:%"),
 					isNull(terminalAgentBindings.endedAt),
 					and(
 						eq(terminalAgentBindings.endReason, "resumed"),
@@ -187,11 +197,10 @@ export interface ResumeWithAccountDeps {
 	resolveAccount?: typeof resolveLaunchAccount;
 	validateRouting?: typeof validateAccountAuthRouting;
 	inspectHistory?: typeof inspectAccountResumeHistory;
+	assertHistoryCurrent?: typeof assertAccountResumeHistoryCurrent;
 	assertIdle?: typeof assertAccountResumeTerminalIdle;
 	assertNoClaudeWriter?: typeof assertNoRecordedClaudeWriter;
 }
-
-const inFlight = new Set<string>();
 
 export async function resumeTerminalWithAccount(
 	deps: ResumeWithAccountDeps,
@@ -214,9 +223,15 @@ export async function resumeTerminalWithAccount(
 		});
 	const config = source.config;
 	const workspace = source.workspace;
-	const key = `${source.binding.agentId}:${source.binding.agentSessionId}`;
-	if (inFlight.has(key)) changed();
-	inFlight.add(key);
+	let release: () => void;
+	try {
+		release = claimNativeSession(
+			source.binding.agentId,
+			source.binding.agentSessionId,
+		);
+	} catch {
+		changed();
+	}
 	let claimed = false;
 	let launchAuthorized = false;
 	const terminalId = randomUUID();
@@ -294,7 +309,7 @@ export async function resumeTerminalWithAccount(
 				.run();
 		});
 		claimed = true;
-		const assertClaim = () => {
+		const assertClaim = (successorPersisted = false) => {
 			const current = context(deps.db, input);
 			if (
 				!current ||
@@ -303,7 +318,36 @@ export async function resumeTerminalWithAccount(
 					source.revision
 			)
 				changed();
-			assertNoCompetingBinding(deps.db, source.binding);
+			let authorizedSuccessorTerminalId: string | undefined;
+			if (successorPersisted) {
+				const successor = deps.db
+					.select()
+					.from(terminalAgentBindings)
+					.where(eq(terminalAgentBindings.terminalId, terminalId))
+					.get();
+				if (successor) {
+					if (
+						successor.workspaceId !== input.workspaceId ||
+						successor.agentId !== source.binding.agentId ||
+						successor.agentSessionId !== source.binding.agentSessionId ||
+						successor.definitionId !== config.id ||
+						successor.endedAt !== null ||
+						successor.endReason !== null ||
+						successor.resumedIntoTerminalId !== null ||
+						!sameSessionAccountContext(
+							parsePersistedSessionAccount(successor.accountJson),
+							target,
+						)
+					)
+						changed();
+					authorizedSuccessorTerminalId = terminalId;
+				}
+			}
+			assertNoCompetingBinding(
+				deps.db,
+				source.binding,
+				authorizedSuccessorTerminalId,
+			);
 		};
 		const result = await deps.runAgent({
 			workspaceId: input.workspaceId,
@@ -339,13 +383,10 @@ export async function resumeTerminalWithAccount(
 				},
 				onInitialCommandReady: () => {
 					// Called in the same transaction that persists the target binding.
-					const current = deps.db
-						.select()
-						.from(terminalAgentBindings)
-						.where(eq(terminalAgentBindings.terminalId, input.terminalId))
-						.get();
-					if (JSON.stringify(current) !== JSON.stringify(claimedBinding))
-						changed();
+					(deps.assertHistoryCurrent ?? assertAccountResumeHistoryCurrent)(
+						history,
+					);
+					assertClaim(true);
 					deps.db
 						.update(terminalAgentBindings)
 						.set({ endReason: "resumed" })
@@ -407,6 +448,6 @@ export async function resumeTerminalWithAccount(
 		}
 		throw error;
 	} finally {
-		inFlight.delete(key);
+		release();
 	}
 }

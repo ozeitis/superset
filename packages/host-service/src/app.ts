@@ -54,14 +54,21 @@ import {
 	SqliteTerminalAgentBindingPersistence,
 	TerminalAgentStore,
 } from "./terminal-agents";
+import { configureAttributionTokensForDatabase } from "./terminal-agents/attribution-token";
 import { matchesAgentBinding } from "./terminal-agents/matches-agent-binding";
 import { appRouter } from "./trpc/router";
 import { gitStatusStore } from "./trpc/router/git/utils/git-status-store";
+import {
+	disposeLocalMobileDevices,
+	startLocalMobileDeviceCleanup,
+} from "./trpc/router/mobile";
+import { disposeBackgroundSuccessorRefresh } from "./trpc/router/notifications/background-successor-adapter";
 import {
 	resumeCrashedAgentSessions,
 	resumeSessionDepsFor,
 } from "./trpc/router/terminal-agents/terminal-agents";
 import { provisionSelectedAccounts } from "./trpc/router/usage/account-provisioning";
+import { disposeUsageQuota } from "./trpc/router/usage/usage";
 import {
 	execGh as defaultExecGh,
 	type ExecGh,
@@ -122,6 +129,11 @@ export interface CreateAppResult {
 	 */
 	launchSandboxAgent: () => Promise<void>;
 	resumeCrashedAgents: () => Promise<void>;
+	recordUnfinishedChats: () => void;
+	readLinkedPullRequests: () => Promise<
+		{ repository: string; number: number; linkedAt: number }[]
+	>;
+	onPullRequestLinked: (listener: () => void) => () => void;
 	terminalAgentStore: TerminalAgentStore;
 	dispose: () => Promise<void>;
 }
@@ -133,6 +145,10 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 		options.api ??
 		createApiClient(config.cloudApiUrl, providers.auth, config.organizationId);
 	const db = options.db ?? createDb(config.dbPath, config.migrationsFolder);
+	configureAttributionTokensForDatabase(
+		config.dbPath,
+		options.db !== undefined,
+	);
 	// A sandbox is provisioned for exactly one workspace, and the env says
 	// which. Seeding it here rather than from the API keeps the schema in one
 	// place and leaves provisioning with nothing to orchestrate.
@@ -345,6 +361,11 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 				occurredAt,
 			}),
 	});
+	try {
+		chatV3.resumeAfterUpdate();
+	} catch (error) {
+		console.warn("[host-service] chat resume after update failed:", error);
+	}
 
 	// Startup sweeps run in the background so they don't block server
 	// startup.
@@ -371,6 +392,9 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 			? null
 			: setInterval(() => void runProjectPurge(), PROJECT_PURGE_INTERVAL_MS);
 	projectPurgeTimer?.unref?.();
+	if (process.env.SUPERSET_HOST_RUN_MODE !== "sandbox") {
+		startLocalMobileDeviceCleanup(db);
+	}
 
 	void (async () => {
 		if (process.env.SUPERSET_HOST_RUN_MODE === "sandbox") return;
@@ -528,8 +552,14 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 
 	const ownsDb = options.db === undefined;
 	const dispose = async (): Promise<void> => {
+		disposeBackgroundSuccessorRefresh(db);
 		if (projectPurgeTimer) clearInterval(projectPurgeTimer);
 		await disposeWorkspaceTitleJobs(db);
+		try {
+			await disposeUsageQuota();
+		} catch (err) {
+			console.warn("[host-service] usage quota disposal failed:", err);
+		}
 		// Each step is best-effort and isolated: a throw in one cleanup must
 		// not skip the others, otherwise a flaky `.stop()` could leak the
 		// open SQLite handle for the rest of the process lifetime.
@@ -542,6 +572,11 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 			pageWatch.stop();
 		} catch (err) {
 			console.warn("[host-service] pageWatch.stop failed:", err);
+		}
+		try {
+			await disposeLocalMobileDevices();
+		} catch (err) {
+			console.warn("[host-service] disposeLocalMobileDevices failed:", err);
 		}
 		try {
 			await chatV3.dispose();
@@ -625,6 +660,19 @@ export function createApp(options: CreateAppOptions): CreateAppResult {
 		eventBus,
 		launchSandboxAgent,
 		resumeCrashedAgents,
+		recordUnfinishedChats: () => {
+			try {
+				chatV3.recordUnfinished();
+			} catch (error) {
+				console.warn(
+					"[host-service] could not record unfinished chats:",
+					error,
+				);
+			}
+		},
+		readLinkedPullRequests: () => pullRequestRuntime.listLinkedPullRequests(),
+		onPullRequestLinked: (listener) =>
+			pullRequestRuntime.onPullRequestLinked(listener),
 		terminalAgentStore,
 		dispose,
 	};

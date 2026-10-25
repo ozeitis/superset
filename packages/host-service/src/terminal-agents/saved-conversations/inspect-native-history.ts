@@ -1,5 +1,6 @@
-import { constants } from "node:fs";
-import { open, readdir, realpath, stat } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { constants, lstatSync, realpathSync, statSync } from "node:fs";
+import { lstat, open, readdir, realpath, stat } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
 import { MAX_TRANSCRIPT_BYTES, validateNativeConversation } from "./native";
 
@@ -13,6 +14,28 @@ export interface AccountResumeHistory {
 	modifiedAt: number;
 	changedAt: number;
 	sha256: string;
+	storeBindings?: Array<{ path: string; canonical: string }>;
+}
+
+export function assertNativeResumeHistoryCurrent(
+	history: AccountResumeHistory,
+): void {
+	const file = lstatSync(history.path);
+	if (
+		!file.isFile() ||
+		realpathSync(history.path) !== history.path ||
+		file.dev !== history.device ||
+		file.ino !== history.inode ||
+		file.size !== history.size ||
+		file.mtimeMs !== history.modifiedAt ||
+		file.ctimeMs !== history.changedAt ||
+		history.storeBindings?.some(
+			(binding) =>
+				realpathSync(binding.path) !== binding.canonical ||
+				!statSync(binding.path).isDirectory(),
+		)
+	)
+		refuse();
 }
 
 function refuse(): never {
@@ -25,6 +48,8 @@ export interface NativeResumeHistoryInput {
 	targetDirectory: string;
 	sessionId: string;
 	cwd: string;
+	/** Require all bytes admitted before normal source exit to remain unchanged. */
+	previous?: AccountResumeHistory;
 }
 
 async function sharedDirectory(
@@ -85,6 +110,13 @@ async function exactSessionFile(
 export async function inspectNativeResumeHistory(
 	input: NativeResumeHistoryInput,
 ): Promise<AccountResumeHistory | null> {
+	return inspectNativeResumeHistoryWithReader(input, open);
+}
+
+export async function inspectNativeResumeHistoryWithReader(
+	input: NativeResumeHistoryInput,
+	openFile: typeof open,
+): Promise<AccountResumeHistory | null> {
 	const { provider, sourceDirectory, targetDirectory, sessionId, cwd } = input;
 	if (
 		!isAbsolute(sourceDirectory) ||
@@ -98,17 +130,27 @@ export async function inspectNativeResumeHistory(
 			targetDirectory,
 			provider === "claude" ? "projects" : "sessions",
 		);
+		const storeBindings = [sourceDirectory, targetDirectory].map((profile) => ({
+			path: join(profile, provider === "claude" ? "projects" : "sessions"),
+			canonical: root,
+		}));
 		if (provider === "codex") {
 			// Native Codex writer ownership is scoped to this directory, not
 			// the rollout tree: codex-rs/rollout/src/writer_lock.rs.
-			await sharedDirectory(
+			const lockRoot = await sharedDirectory(
 				sourceDirectory,
 				targetDirectory,
 				"thread-writer-locks",
 			);
+			storeBindings.push(
+				...[sourceDirectory, targetDirectory].map((profile) => ({
+					path: join(profile, "thread-writer-locks"),
+					canonical: lockRoot,
+				})),
+			);
 		}
 		const path = await exactSessionFile(root, provider, sessionId);
-		const file = await open(
+		const file = await openFile(
 			path,
 			constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
 		);
@@ -118,6 +160,20 @@ export async function inspectNativeResumeHistory(
 				!before.isFile() ||
 				before.size === 0 ||
 				before.size > MAX_TRANSCRIPT_BYTES
+			)
+				refuse();
+			const previous = input.previous;
+			if (
+				previous &&
+				(previous.path !== path ||
+					previous.device !== before.dev ||
+					previous.inode !== before.ino ||
+					!Number.isSafeInteger(previous.size) ||
+					previous.size <= 0 ||
+					previous.size > before.size ||
+					!/^[a-f0-9]{64}$/.test(previous.sha256) ||
+					JSON.stringify(previous.storeBindings) !==
+						JSON.stringify(storeBindings))
 			)
 				refuse();
 			const buffer = Buffer.alloc(before.size);
@@ -132,6 +188,13 @@ export async function inspectNativeResumeHistory(
 				if (!bytesRead) refuse();
 				offset += bytesRead;
 			}
+			if (
+				previous &&
+				createHash("sha256")
+					.update(buffer.subarray(0, previous.size))
+					.digest("hex") !== previous.sha256
+			)
+				refuse();
 			const content = new TextDecoder("utf-8", {
 				fatal: true,
 				ignoreBOM: true,
@@ -142,10 +205,27 @@ export async function inspectNativeResumeHistory(
 			);
 			if (!evidence.ok) refuse();
 			const after = await file.stat();
+			const named = await lstat(path);
 			if (
 				before.size !== after.size ||
 				before.mtimeMs !== after.mtimeMs ||
-				before.ctimeMs !== after.ctimeMs
+				before.ctimeMs !== after.ctimeMs ||
+				!named.isFile() ||
+				named.dev !== after.dev ||
+				named.ino !== after.ino ||
+				named.size !== after.size ||
+				named.mtimeMs !== after.mtimeMs ||
+				named.ctimeMs !== after.ctimeMs ||
+				(await realpath(path)) !== path ||
+				!(
+					await Promise.all(
+						storeBindings.map(
+							async (binding) =>
+								(await realpath(binding.path)) === binding.canonical &&
+								(await stat(binding.path)).isDirectory(),
+						),
+					)
+				).every(Boolean)
 			)
 				refuse();
 			return {
@@ -156,6 +236,7 @@ export async function inspectNativeResumeHistory(
 				modifiedAt: after.mtimeMs,
 				changedAt: after.ctimeMs,
 				sha256: evidence.value.sha256,
+				storeBindings,
 			};
 		} finally {
 			await file.close();

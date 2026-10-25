@@ -93,6 +93,7 @@ export interface TerminalAgentBindingPersistence {
 	load(): TerminalAgentBinding[];
 	upsert(binding: TerminalAgentBinding): void;
 	delete(terminalId: string): void;
+	getProvenance?(terminalId: string): TerminalAgentBinding | undefined;
 	/**
 	 * Retain the row but stamp `endedAt`/`endReason` so the agent session id
 	 * survives as a resume candidate. Absent → the store falls back to
@@ -168,6 +169,16 @@ export class TerminalAgentStore extends EventEmitter {
 		}
 
 		const ended = this.persistence?.getEnded?.(terminalId);
+		const durable = this.persistence?.getProvenance?.(terminalId);
+		if (
+			ended &&
+			durable &&
+			(durable.endReason === "resumed" || durable.endReason === "disposed") &&
+			(!input.launchId ||
+				durable.launchId === input.launchId ||
+				durable.agentSessionId === agentSessionId)
+		)
+			return;
 		const existing = ended ? undefined : this.byTerminal.get(terminalId);
 		if (!agentId && !existing) return;
 
@@ -191,14 +202,36 @@ export class TerminalAgentStore extends EventEmitter {
 		// Only inherit identity metadata when agentId hasn't changed; otherwise
 		// a swap event that omits agentSessionId/definitionId would inherit the
 		// prior agent's values and corrupt definitionId-filtered reads.
-		const prior =
+		const memoryPrior =
 			existing !== undefined &&
+			existing.workspaceId === workspaceId &&
 			existing.agentId === nextAgentId &&
 			(!input.launchId ||
 				!existing.launchId ||
 				input.launchId === existing.launchId)
 				? existing
 				: undefined;
+		const sameDurableLaunch =
+			durable &&
+			(durable.agentId === "claude" || durable.agentId === "codex") &&
+			durable.workspaceId === workspaceId &&
+			durable.agentId === nextAgentId &&
+			!!agentSessionId &&
+			durable.agentSessionId === agentSessionId &&
+			!!input.launchId &&
+			durable.launchId === input.launchId &&
+			(durable.endedAt === undefined ||
+				durable.endReason === "detached" ||
+				durable.endReason === "terminal-exited");
+		const prior = sameDurableLaunch
+			? {
+					...durable,
+					...memoryPrior,
+					account: memoryPrior?.account ?? durable.account,
+					accountInvalid: memoryPrior?.accountInvalid ?? durable.accountInvalid,
+					startedAt: durable.startedAt,
+				}
+			: memoryPrior;
 
 		const sessionChanged =
 			prior?.agentSessionId !== undefined &&
@@ -242,6 +275,12 @@ export class TerminalAgentStore extends EventEmitter {
 		this.byTerminal.set(terminalId, next);
 		this.persistence?.upsert(next);
 		this.emit("change", workspaceId);
+		this.noteActivity(workspaceId);
+	}
+
+	/** An agent did something; the sandbox keepalive listens for this. */
+	noteActivity(workspaceId: string): void {
+		this.emit("activity", workspaceId);
 	}
 
 	updateMetadata(
@@ -300,6 +339,7 @@ export class TerminalAgentStore extends EventEmitter {
 				: {}),
 		});
 		this.emit("change", input.workspaceId);
+		this.noteActivity(input.workspaceId);
 	}
 
 	updateChat(
@@ -360,6 +400,7 @@ export class TerminalAgentStore extends EventEmitter {
 				endedAt: occurredAt,
 			});
 			this.emit("change", workspaceId);
+			this.noteActivity(workspaceId);
 			return;
 		}
 
@@ -391,6 +432,7 @@ export class TerminalAgentStore extends EventEmitter {
 			this.subagentsByTerminal.set(terminalId, new Map([[subagentId, next]]));
 		}
 		this.emit("change", workspaceId);
+		this.noteActivity(workspaceId);
 	}
 
 	/**
@@ -513,6 +555,13 @@ export class TerminalAgentStore extends EventEmitter {
 			changed = true;
 		}
 		if (changed) this.emit("change", workspaceId);
+	}
+
+	getProvenance(terminalId: string): TerminalAgentBinding | undefined {
+		const durable = this.persistence?.getProvenance?.(terminalId);
+		return durable?.endedAt !== undefined
+			? durable
+			: (this.byTerminal.get(terminalId) ?? durable);
 	}
 
 	get(terminalId: string): TerminalAgentBinding | undefined {

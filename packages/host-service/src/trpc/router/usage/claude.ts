@@ -14,11 +14,27 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { createRestartableClaudeCollectionQueue } from "./claude-collection-queue";
+import {
+	type ClaudeSubscriptionQuota,
+	fetchClaudeSubscriptionQuota,
+} from "./claude-subscription";
+import { createCredentialQuotaCache } from "./credential-quota-cache";
+import {
+	canDeferClaudeHttpQuota,
+	createNativeClaudeQuotaOverlay,
+} from "./native-claude-overlay";
+import {
+	createNativeClaudeScopeResolver,
+	nativeClaudeCredentialGeneration,
+} from "./native-claude-scope";
+import { nativeClaudeUsage } from "./native-claude-usage";
 import {
 	discoverClaudeProfiles,
 	keychainServicesForConfigDir,
 	readKeychainSecrets,
 } from "./profiles";
+import { copyQuotaRetry } from "./quota-backoff";
 import type { QuotaSnapshot } from "./quota-cache";
 import {
 	parseQuotaCredentialJson,
@@ -27,22 +43,20 @@ import {
 	type UnavailableQuotaSlot,
 	unavailableQuotaAccount,
 } from "./quota-credentials";
-import type {
-	UsageAccount,
-	UsageAccountStatus,
-	UsageQuotaWindow,
-} from "./types";
+import { canonicalQuotaProfile, copyQuotaIdentity } from "./quota-identity";
+import {
+	createQuotaRequestBudget,
+	QUOTA_CAPTURE_BUDGET_MS,
+} from "./quota-request";
+import type { UsageAccount } from "./types";
 
 const CLAUDE_KEYCHAIN_SERVICE = "Claude Code-credentials";
-const CLAUDE_USAGE_URL = "https://api.anthropic.com/api/oauth/usage";
-const CLAUDE_PROFILE_URL = "https://api.anthropic.com/api/oauth/profile";
-const CLAUDE_OAUTH_BETA_HEADER = "oauth-2025-04-20";
-const FETCH_TIMEOUT_MS = 10_000;
 
 export interface ClaudeOauthCredential {
 	accessToken: string;
 	expiresAt: number | null;
 	refreshTokenExpiresAt: number | null;
+	hasRefreshToken?: boolean;
 	subscriptionType: string | null;
 	accountKey: string;
 	sourceLabel: string;
@@ -88,9 +102,12 @@ function parseCredential(
 		return {
 			accessToken: oauth.accessToken,
 			expiresAt: typeof oauth.expiresAt === "number" ? oauth.expiresAt : null,
+			hasRefreshToken:
+				typeof oauth.refreshToken === "string" &&
+				oauth.refreshToken.trim().length > 0,
 			refreshTokenExpiresAt:
 				typeof oauth.refreshToken === "string" &&
-				oauth.refreshToken.length > 0 &&
+				oauth.refreshToken.trim().length > 0 &&
 				typeof oauth.refreshTokenExpiresAt === "number"
 					? oauth.refreshTokenExpiresAt
 					: null,
@@ -158,7 +175,7 @@ export const EXPIRED_TOKEN_DETAIL =
 export function classifyLapsedToken(
 	credential: Pick<
 		ClaudeOauthCredential,
-		"expiresAt" | "refreshTokenExpiresAt"
+		"expiresAt" | "refreshTokenExpiresAt" | "hasRefreshToken"
 	>,
 	now = Date.now(),
 ): "live" | "token_stale" | "token_expired" {
@@ -166,8 +183,9 @@ export function classifyLapsedToken(
 		return "live";
 	}
 	if (
-		credential.refreshTokenExpiresAt !== null &&
-		credential.refreshTokenExpiresAt > now
+		credential.refreshTokenExpiresAt === null
+			? credential.hasRefreshToken === true
+			: credential.refreshTokenExpiresAt > now
 	) {
 		return "token_stale";
 	}
@@ -235,8 +253,13 @@ export async function readProfileCredential(
 		strict,
 	);
 	const candidates: Array<ClaudeOauthCredential | null> = [fromFile];
-	for (const service of profile.keychainServices) {
-		for (const secret of await readKeychainSecrets(service, strict)) {
+	const serviceSecrets = await Promise.all(
+		profile.keychainServices.map((service) =>
+			readKeychainSecrets(service, strict),
+		),
+	);
+	for (const secrets of serviceSecrets) {
+		for (const secret of secrets) {
 			candidates.push(
 				parseCredential(
 					secret,
@@ -330,7 +353,7 @@ export async function captureClaudeCredentialSlots(
 				}
 			}),
 	);
-	const credentials = new Map<string, ClaudeOauthCredential>();
+	const credentials = new Map<string | null, ClaudeOauthCredential>();
 	const unavailableSlots = new Map<string | null, UnavailableQuotaSlot>();
 	const signedOutProfiles: ClaudeQuotaInputs["signedOutProfiles"] = [];
 	for (const { slot, unavailable } of results) {
@@ -338,8 +361,14 @@ export async function captureClaudeCredentialSlots(
 	}
 	for (const { slot, credential, unavailable } of results) {
 		if (unavailable || unavailableSlots.has(slot.source.selection)) continue;
-		if (credential && !credentials.has(credential.accessToken)) {
-			credentials.set(credential.accessToken, credential);
+		if (credential) {
+			credentials.set(
+				credential.selection,
+				pickFreshest([
+					credentials.get(credential.selection) ?? null,
+					credential,
+				]) ?? credential,
+			);
 		} else if (!credential && slot.profile)
 			signedOutProfiles.push(slot.profile);
 	}
@@ -473,204 +502,224 @@ async function discoverClaudeCredentials(
 		defaultCredential.email = defaultEmail;
 	}
 
-	const byToken = new Map<string, ClaudeOauthCredential>();
+	const byProfile = new Map<string | null, ClaudeOauthCredential>();
 	for (const credential of [defaultCredential, ...explicit, ...profiled]) {
-		if (credential && !byToken.has(credential.accessToken)) {
-			byToken.set(credential.accessToken, credential);
-		}
+		if (credential)
+			byProfile.set(
+				credential.selection,
+				pickFreshest([
+					byProfile.get(credential.selection) ?? null,
+					credential,
+				]) ?? credential,
+			);
 	}
+
 	// Profiles with an identity but no readable credential (logged out, or a
 	// login that died half-way) still surface so the UI can offer re-sign-in
 	// and removal — otherwise the dir exists but nothing shows it.
 	const signedOutProfiles = profiles.filter(
 		(_profile, index) => profiled[index] === null,
 	);
-	return { credentials: [...byToken.values()], signedOutProfiles, apiProfiles };
-}
-
-interface ClaudeUsageWindow {
-	utilization?: number;
-	resets_at?: string;
-}
-
-interface ClaudeUsageResponse {
-	five_hour?: ClaudeUsageWindow;
-	seven_day?: ClaudeUsageWindow;
-	seven_day_sonnet?: ClaudeUsageWindow;
-	limits?: Array<{
-		kind?: string;
-		percent?: number;
-		resets_at?: string;
-		scope?: { model?: { display_name?: string } };
-	}>;
-	extra_usage?: { monthly_limit?: number; used_credits?: number };
-}
-
-interface ClaudeProfileResponse {
-	account?: { email?: string; email_address?: string };
-	email?: string;
-}
-
-function toWindow(
-	id: string,
-	label: string,
-	window: ClaudeUsageWindow | undefined,
-): UsageQuotaWindow | null {
-	if (!window || typeof window.utilization !== "number") return null;
 	return {
-		id,
-		label,
-		usedPercent: Math.max(0, Math.round(window.utilization)),
-		resetsAt: window.resets_at ? new Date(window.resets_at) : null,
+		credentials: [...byProfile.values()],
+		signedOutProfiles,
+		apiProfiles,
 	};
 }
 
-function mapWindows(usage: ClaudeUsageResponse): UsageQuotaWindow[] {
-	const windows: UsageQuotaWindow[] = [];
-	const session = toWindow("five_hour", "Session (5h)", usage.five_hour);
-	if (session) windows.push(session);
-	const weekly = toWindow("seven_day", "Weekly", usage.seven_day);
-	if (weekly) windows.push(weekly);
-	const sonnet = toWindow(
-		"seven_day_sonnet",
-		"Weekly · Sonnet",
-		usage.seven_day_sonnet,
+export type { ClaudeSubscriptionQuota } from "./claude-subscription";
+export { fetchClaudeSubscriptionQuota } from "./claude-subscription";
+
+export const CLAUDE_QUOTA_POLL_MS = 15 * 60_000;
+const accountQuotaCache = createCredentialQuotaCache<
+	ClaudeSubscriptionQuota & { fetchedAt: Date }
+>(CLAUDE_QUOTA_POLL_MS);
+const collectionQueue = createRestartableClaudeCollectionQueue();
+export const onClaudeQuotaUpdate = collectionQueue.subscribe;
+export const disposeClaudeQuotaCollection = collectionQueue.dispose;
+type CollectionMode = "blocking" | "background" | "skip";
+async function readNativeClaudeCredential(selection: string | null) {
+	const directory = selection ?? join(homedir(), ".claude");
+	const canonical = await canonicalQuotaProfile(directory);
+	if (!canonical) return null;
+	const credential =
+		selection === null
+			? await readDefaultQuotaCredential(() =>
+					Promise.all([
+						readKeychainCredential(true),
+						readCredentialFile(
+							join(homedir(), ".claude", ".credentials.json"),
+							"~/.claude",
+							null,
+							true,
+						),
+						readCredentialFile(
+							join(homedir(), ".config", "claude", "credentials.json"),
+							"~/.config/claude",
+							null,
+							true,
+						),
+					]),
+				)
+			: await readProfileCredential(
+					{
+						configDir: selection,
+						credentialsPath: join(selection, ".credentials.json"),
+						sourceLabel: selection,
+						email: null,
+						credentialKind: "subscription",
+						loginFingerprint: null,
+						keychainServices: keychainServicesForConfigDir(selection),
+					},
+					true,
+				);
+	if (!credential || classifyLapsedToken(credential) !== "live") return null;
+	const defaultDirectory = await canonicalQuotaProfile(
+		join(homedir(), ".claude"),
 	);
-	if (sonnet) windows.push(sonnet);
-
-	for (const limit of usage.limits ?? []) {
-		if (limit.kind !== "weekly_scoped" || typeof limit.percent !== "number") {
-			continue;
-		}
-		const modelName = limit.scope?.model?.display_name;
-		if (!modelName) continue;
-		const label = `Weekly · ${modelName}`;
-		if (windows.some((existing) => existing.label === label)) continue;
-		windows.push({
-			id: `weekly_scoped:${modelName}`,
-			label,
-			usedPercent: Math.max(0, Math.round(limit.percent)),
-			resetsAt: limit.resets_at ? new Date(limit.resets_at) : null,
-		});
-	}
-	return windows;
-}
-
-async function fetchClaudeProfileEmail(
-	accessToken: string,
-): Promise<string | null> {
-	try {
-		const response = await fetch(CLAUDE_PROFILE_URL, {
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-				"anthropic-beta": CLAUDE_OAUTH_BETA_HEADER,
-			},
-			signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-		});
-		if (!response.ok) return null;
-		const profile = (await response.json()) as ClaudeProfileResponse;
-		return (
-			profile.account?.email ??
-			profile.account?.email_address ??
-			profile.email ??
-			null
-		);
-	} catch {
+	const file =
+		canonical === defaultDirectory
+			? join(homedir(), ".claude.json")
+			: join(directory, ".claude.json");
+	const raw = await readQuotaCredentialFile(file, 50 * 1024 * 1024);
+	if (raw === null) return null;
+	const data = parseQuotaCredentialJson(raw);
+	const account = data.oauthAccount as
+		| { accountUuid?: unknown; emailAddress?: unknown }
+		| undefined;
+	if (
+		typeof account?.accountUuid !== "string" ||
+		!account.accountUuid ||
+		typeof account.emailAddress !== "string" ||
+		!account.emailAddress
+	)
 		return null;
+	// Keep this tuple byte-for-byte aligned with session-account/readAccountIdentity.
+	const registrationHash = createHash("sha256")
+		.update(
+			JSON.stringify([account.accountUuid, undefined, account.emailAddress]),
+		)
+		.digest("hex");
+	return {
+		accessToken: credential.accessToken,
+		canonicalProfile: canonical,
+		registrationHash,
+	};
+}
+const nativeClaudeScope = createNativeClaudeScopeResolver({
+	readCurrent: readNativeClaudeCredential,
+	canonicalize: canonicalQuotaProfile,
+	peekQuota: (accessToken) =>
+		accountQuotaCache.peek(
+			createHash("sha256")
+				.update(JSON.stringify(["claude", accessToken]))
+				.digest("hex"),
+		)?.value,
+});
+export const captureNativeClaudeUsageGeneration =
+	nativeClaudeScope.captureGeneration;
+export const resolveNativeClaudeUsageScope = nativeClaudeScope.resolve;
+const nativeQuotaOverlay = createNativeClaudeQuotaOverlay({
+	enabled: () => process.env.SUPERSET_NATIVE_CLAUDE_USAGE === "1",
+	generation: nativeClaudeCredentialGeneration,
+	readCurrent: readNativeClaudeCredential,
+	resolveScope: nativeClaudeScope.resolve,
+	isCurrent: (accessToken, quota) =>
+		accountQuotaCache.peek(
+			createHash("sha256")
+				.update(JSON.stringify(["claude", accessToken]))
+				.digest("hex"),
+		)?.value === quota,
+	snapshot: (scope) => nativeClaudeUsage.snapshot(scope),
+});
+
+export async function getCredentialQuota(
+	credential: ClaudeOauthCredential,
+	forceRefresh = false,
+	mode: CollectionMode = "blocking",
+) {
+	const accessToken = credential.accessToken;
+	const key = createHash("sha256")
+		.update(JSON.stringify([credential.selection, accessToken]))
+		.digest("hex");
+	const transport = createHash("sha256")
+		.update(JSON.stringify(["claude", accessToken]))
+		.digest("hex");
+	const cached = accountQuotaCache.peek(transport)?.value;
+	const projectNative = async (
+		quota: ClaudeSubscriptionQuota & { fetchedAt: Date },
+	) => {
+		const projected = await nativeQuotaOverlay(credential, quota);
+		return projected
+			? copyQuotaRetry(quota, copyQuotaIdentity(quota, projected))
+			: null;
+	};
+	const passive = cached ? await projectNative(cached) : null;
+	if (
+		!forceRefresh &&
+		passive &&
+		cached &&
+		canDeferClaudeHttpQuota(cached, passive)
+	)
+		return passive;
+	const load = async (signal?: AbortSignal) =>
+		accountQuotaCache.get(
+			key,
+			async () => {
+				const profilePath = credential.selection ?? join(homedir(), ".claude");
+				const canonical = await canonicalQuotaProfile(profilePath);
+				const expected = createHash("sha256").update(accessToken).digest("hex");
+				if (
+					mode !== "blocking" &&
+					(await readClaudeLoginFingerprint(credential.selection)) !== expected
+				)
+					throw new Error("Usage credentials changed before collection.");
+				const quota = await fetchClaudeSubscriptionQuota(
+					accessToken,
+					undefined,
+					{ canonicalProfile: canonical, signal },
+				);
+				if (
+					mode !== "blocking" &&
+					((await readClaudeLoginFingerprint(credential.selection)) !==
+						expected ||
+						(await canonicalQuotaProfile(profilePath)) !== canonical)
+				)
+					throw new Error("Usage credentials changed during collection.");
+				return copyQuotaRetry(
+					quota,
+					copyQuotaIdentity(quota, {
+						...quota,
+						fetchedAt: quota.fetchedAt ?? new Date(),
+					}),
+				);
+			},
+			forceRefresh,
+			transport,
+		);
+	if (mode === "blocking") {
+		const loaded = await load();
+		return (await projectNative(loaded)) ?? loaded;
 	}
-}
-
-/** What the usage endpoint says about one live access token. */
-export interface ClaudeSubscriptionQuota {
-	email: string | null;
-	status: UsageAccountStatus;
-	statusDetail: string | null;
-	windows: UsageQuotaWindow[];
-	extraUsage: UsageAccount["extraUsage"];
-}
-
-/**
- * Reads the subscription quota behind a live Claude OAuth access token. The
- * OpenCode reader shares this: its Anthropic login is the same OAuth client,
- * so the same endpoint answers.
- */
-export async function fetchClaudeSubscriptionQuota(
-	accessToken: string,
-): Promise<ClaudeSubscriptionQuota> {
-	try {
-		const [usageResponse, apiEmail] = await Promise.all([
-			fetch(CLAUDE_USAGE_URL, {
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-					"anthropic-beta": CLAUDE_OAUTH_BETA_HEADER,
-				},
-				signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-			}),
-			fetchClaudeProfileEmail(accessToken),
-		]);
-
-		if (usageResponse.status === 401 || usageResponse.status === 403) {
-			return {
-				email: apiEmail,
-				status: "token_expired",
-				statusDetail: EXPIRED_TOKEN_DETAIL,
-				windows: [],
-				extraUsage: null,
-			};
-		}
-		if (!usageResponse.ok) {
-			return {
-				email: apiEmail,
-				status: "unavailable",
-				statusDetail: `Usage endpoint returned ${usageResponse.status}.`,
-				windows: [],
-				extraUsage: null,
-			};
-		}
-
-		const usage = (await usageResponse.json()) as ClaudeUsageResponse;
-		const windows = mapWindows(usage);
-		const extraUsage =
-			typeof usage.extra_usage?.used_credits === "number" &&
-			typeof usage.extra_usage?.monthly_limit === "number"
-				? {
-						usedCents: usage.extra_usage.used_credits,
-						limitCents: usage.extra_usage.monthly_limit,
-					}
-				: null;
-
-		if (windows.length === 0) {
-			return {
-				email: apiEmail,
-				status: "unavailable",
-				statusDetail:
-					"No quota data returned (org-managed and education plans do not expose limits).",
-				windows: [],
-				extraUsage,
-			};
-		}
-
-		return {
-			email: apiEmail,
-			status: "ok",
-			statusDetail: null,
-			windows,
-			extraUsage,
-		};
-	} catch (error) {
-		return {
-			email: null,
-			status: "unavailable",
-			statusDetail:
-				error instanceof Error ? error.message : "Failed to fetch usage.",
+	if (mode !== "skip" && (forceRefresh || !accountQuotaCache.fresh(transport)))
+		void collectionQueue.enqueue(transport, load, forceRefresh).catch(() => {});
+	return (
+		passive ??
+		cached ?? {
+			email: credential.email ?? null,
+			status: "unavailable" as const,
+			statusDetail: "Usage is refreshing.",
 			windows: [],
 			extraUsage: null,
-		};
-	}
+			fetchedAt: new Date(0),
+		}
+	);
 }
 
-async function fetchClaudeAccount(
+export async function fetchClaudeAccount(
 	credential: ClaudeOauthCredential,
+	forceRefresh = false,
+	mode: CollectionMode = "blocking",
 ): Promise<UsageAccount> {
 	const base = {
 		agent: "claude" as const,
@@ -698,8 +747,15 @@ async function fetchClaudeAccount(
 		};
 	}
 
-	const quota = await fetchClaudeSubscriptionQuota(credential.accessToken);
-	return { ...base, ...quota, email: quota.email ?? credential.email ?? null };
+	const quota = await getCredentialQuota(credential, forceRefresh, mode);
+	return copyQuotaRetry(
+		quota,
+		copyQuotaIdentity(quota, {
+			...base,
+			...quota,
+			email: quota.email ?? credential.email ?? null,
+		}),
+	);
 }
 
 export async function fetchClaudeAccounts(): Promise<UsageAccount[]> {
@@ -712,7 +768,11 @@ export async function captureClaudeQuotaSnapshot(
 ): Promise<QuotaSnapshot<UsageAccount[]>> {
 	let snapshot: ClaudeQuotaInputs;
 	try {
-		snapshot = structuredClone(await capture());
+		snapshot = structuredClone(
+			await createQuotaRequestBudget(QUOTA_CAPTURE_BUDGET_MS).run(() =>
+				capture(),
+			),
+		);
 	} catch {
 		snapshot = {
 			credentials: [],
@@ -743,7 +803,13 @@ export async function captureClaudeQuotaSnapshot(
 			]),
 		)
 		.digest("hex");
-	return { revision, load: () => fetchClaudeSnapshot(snapshot, fetchAccount) };
+	return {
+		revision,
+		load: (forceRefresh = false) =>
+			fetchClaudeSnapshot(snapshot, (credential) =>
+				fetchAccount(credential, forceRefresh, "background"),
+			),
+	};
 }
 
 async function fetchClaudeSnapshot(
@@ -756,7 +822,13 @@ async function fetchClaudeSnapshot(
 	fetchAccount = fetchClaudeAccount,
 ): Promise<UsageAccount[]> {
 	const accounts = [
-		...(await Promise.all(credentials.map(fetchAccount))),
+		...(await Promise.all(
+			credentials.map((credential) =>
+				fetchAccount(credential, false, "background").catch(() =>
+					unavailableQuotaAccount({ agent: "claude", ...credential }),
+				),
+			),
+		)),
 		...unavailableSlots.map(unavailableQuotaAccount),
 	];
 	for (const profile of apiProfiles) {

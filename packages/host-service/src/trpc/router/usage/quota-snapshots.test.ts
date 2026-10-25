@@ -5,11 +5,16 @@ import { join } from "node:path";
 import {
 	captureClaudeCredentialSlots,
 	captureClaudeQuotaSnapshot,
+	classifyLapsedToken,
 	readDefaultQuotaCredential,
 	readProfileCredential,
 } from "./claude";
 import { captureCodexQuotaSnapshot } from "./codex";
-import type { ClaudeProfile, CodexHome } from "./profiles";
+import {
+	type ClaudeProfile,
+	type CodexHome,
+	collectKeychainSecrets,
+} from "./profiles";
 import { createQuotaCache } from "./quota-cache";
 import type { UsageAccount } from "./types";
 
@@ -493,4 +498,161 @@ test("Codex null account ID is absent while non-string IDs remain unavailable", 
 		).toBe("unavailable");
 	}
 	expect(headers).toEqual([undefined]);
+});
+
+test("Claude refresh-token presence with missing expiry remains renewable without exposing the token", async () => {
+	const home = await directory();
+	const now = Date.now();
+	for (const refreshToken of ["synthetic-refresh", "   ", undefined]) {
+		await writeFile(
+			join(home, ".credentials.json"),
+			JSON.stringify({
+				claudeAiOauth: {
+					accessToken: "synthetic-lapsed",
+					expiresAt: now - 1000,
+					refreshToken,
+				},
+			}),
+		);
+		const credential = await readProfileCredential(claudeProfile(home), true);
+		if (!credential) throw new Error("Expected readable credential");
+		expect(credential.hasRefreshToken).toBe(
+			refreshToken === "synthetic-refresh",
+		);
+		expect(classifyLapsedToken(credential, now)).toBe(
+			refreshToken === "synthetic-refresh" ? "token_stale" : "token_expired",
+		);
+		expect(JSON.stringify(credential)).not.toContain("synthetic-refresh");
+	}
+});
+
+test("Claude profiles sharing a token stay distinct without a shared account row", async () => {
+	const input = await captureClaudeCredentialSlots(
+		["a", "b"].map((id) => ({
+			source: {
+				agent: "claude" as const,
+				accountKey: id,
+				sourceLabel: id,
+				selection: `/synthetic/${id}`,
+			},
+			read: async () => ({
+				accessToken: "synthetic-shared-profile-token",
+				expiresAt: null,
+				refreshTokenExpiresAt: null,
+				subscriptionType: null,
+				accountKey: id,
+				sourceLabel: id,
+				selection: `/synthetic/${id}`,
+			}),
+		})),
+		[],
+	);
+	expect(input.credentials.map((item) => item.selection)).toEqual([
+		"/synthetic/a",
+		"/synthetic/b",
+	]);
+});
+
+test("failed Claude request remains anonymous while a healthy sibling loads", async () => {
+	const snapshot = await captureClaudeQuotaSnapshot(
+		async () => ({
+			credentials: ["unavailable", "healthy"].map((id) => ({
+				accessToken: `synthetic-slot-${id}`,
+				expiresAt: null,
+				refreshTokenExpiresAt: null,
+				subscriptionType: null,
+				accountKey: id,
+				sourceLabel: id,
+				selection: `/synthetic/${id}`,
+			})),
+			signedOutProfiles: [],
+			apiProfiles: [],
+		}),
+		async (credential) => {
+			if (credential.accountKey === "unavailable")
+				throw new Error("synthetic-secret-not-for-output");
+			return { ...quota, accountKey: credential.accountKey };
+		},
+	);
+	const rows = await snapshot.load();
+	expect(rows.map((row) => row.status)).toEqual(["unavailable", "ok"]);
+	expect(rows[0]?.email).toBeNull();
+	expect(JSON.stringify(rows)).not.toContain("synthetic-secret-not-for-output");
+});
+
+test("strict Keychain scope reads start together and preserve missing-item/error semantics", async () => {
+	let release!: () => void;
+	const gate = new Promise<void>((done) => {
+		release = done;
+	});
+	const calls: string[] = [];
+	const pending = collectKeychainSecrets(
+		[["a"], ["b"], []],
+		async (scope) => {
+			calls.push(scope[0] ?? "unscoped");
+			await gate;
+			if (scope[0] === "b")
+				throw Object.assign(new Error("missing"), { code: 44 });
+			return " synthetic-scope-secret ";
+		},
+		true,
+	);
+	await Promise.resolve();
+	const started = [...calls];
+	release();
+	expect(await pending).toEqual(["synthetic-scope-secret"]);
+	expect(started).toEqual(["a", "b", "unscoped"]);
+	await expect(
+		collectKeychainSecrets(
+			[[]],
+			async () => {
+				throw new Error("secret-error");
+			},
+			true,
+		),
+	).rejects.toThrow("Quota credentials could not be verified.");
+});
+
+test("Codex homes sharing one subscription keep separate rows while deduplicating transport", async () => {
+	const homes: CodexHome[] = [];
+	for (const id of ["a", "b"]) {
+		const home = await directory();
+		await writeFile(
+			join(home, "auth.json"),
+			JSON.stringify({
+				tokens: {
+					access_token: "synthetic-codex-shared-rows",
+					account_id: "same-account",
+				},
+			}),
+		);
+		homes.push({
+			home,
+			sourceLabel: id,
+			credentialKind: "subscription",
+			loginFingerprint: null,
+		});
+	}
+	let requests = 0;
+	const snapshot = await captureCodexQuotaSnapshot(
+		async () => homes,
+		async () => {
+			requests++;
+			return {
+				email: "same@example.test",
+				plan: "test",
+				status: "ok",
+				statusDetail: null,
+				windows: [],
+				creditsBalance: null,
+			};
+		},
+	);
+	const rows = await snapshot.load();
+	expect(rows).toHaveLength(2);
+	const second = homes[1];
+	if (!second) throw new Error("Expected second synthetic profile");
+	expect(rows.map((row) => row.selection)).toEqual([null, second.home]);
+	expect(requests).toBe(1);
+	expect(rows[0]?.fetchedAt).toEqual(rows[1]?.fetchedAt);
 });
