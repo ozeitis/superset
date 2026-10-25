@@ -1,0 +1,277 @@
+{
+  "formatVersion": 1,
+  "sourceCommit": "4205c0796de07da658dd334b3ba87de81d904681",
+  "consumerPrerequisite": {
+    "pullRequest": 8464,
+    "sourceCommit": "7f2a262e282c85f6354ccd726bb9b9da452bb2e0",
+    "scopeFiles": [
+      "packages/host-service/src/trpc/router/usage/native-claude-overlay.test.ts",
+      "packages/host-service/src/trpc/router/usage/native-claude-overlay.ts",
+      "packages/host-service/src/trpc/router/usage/native-claude-usage.test.ts",
+      "packages/host-service/src/trpc/router/usage/native-claude-usage.ts"
+    ]
+  },
+  "producerPrerequisites": [
+    8462,
+    8464
+  ],
+  "optIn": {
+    "defaultEnabled": false,
+    "environmentName": "SUPERSET_NATIVE_CLAUDE_USAGE",
+    "requiredExactValue": "1",
+    "newPinnedLaunchesOnly": true
+  },
+  "liveTerminal": {
+    "passed": true,
+    "cliVersion": "2.1.310",
+    "runtime": "Node.js 24",
+    "platform": "macOS arm64",
+    "genuineProviderResponse": true,
+    "providerTurnCount": 1,
+    "officialUsagePreflightRequests": 1,
+    "windowIds": [
+      "five_hour",
+      "seven_day"
+    ],
+    "sources": [
+      "claude_statusline"
+    ],
+    "checks": {
+      "exactSourcePinned": true,
+      "authenticatedAccountBinding": true,
+      "credentialGenerationPinned": true,
+      "perLaunchOverlay": true,
+      "apiProgressObserved": true,
+      "baselineCounterIncreased": true,
+      "bothWindowsReachedCommonReader": true,
+      "originalHttpAndFinancialDatesPreserved": true,
+      "idleReadbackRetainedOriginalDates": true,
+      "settingsUnchanged": true,
+      "ownedTestExitedNormally": true,
+      "collectorAndInputClosed": true,
+      "cleanupHadNoErrors": true
+    },
+    "acknowledgementTimingQualified": false,
+    "proofRoute": "Actual official terminal -> process-only statusline bridge -> real owner-bound ingestion/store -> cache-only shared quota reader in an isolated harness"
+  },
+  "acp": {
+    "validation": "synthetic adapter transport only",
+    "liveAcceptanceClaimed": false
+  },
+  "limits": {
+    "nativeWindowMaxAgeMs": 360000,
+    "freshnessRequiresApiProgress": true,
+    "firstFrameIsBaseline": true,
+    "receiptStampedBeforeAsyncValidation": true,
+    "timerOrReplayRenewsAge": false,
+    "principalOrganizationAndCredentialProofRequired": true,
+    "existingOrAdoptedWorkersGainNewHook": false,
+    "httpFallbackRetained": true,
+    "walletAndResetCreditsUseIndependentSources": true,
+    "schemaChanged": false,
+    "uiChanged": false,
+    "allPlatformsOrCliVersionsQualified": false,
+    "productionDesktopLiveVerificationClaimed": false,
+    "consumerPrecision": "Reset order and identity use floor(milliseconds / 1000); accepted same-second readings keep the later precise timestamp. Receipt age and within-window no-decrease guards remain strict."
+  },
+  "completedChecks": [
+    {
+      "receipt": "native-precision-focused",
+      "scope": "native boundary subset",
+      "sourceCommit": "4205c0796de07da658dd334b3ba87de81d904681",
+      "completed": true,
+      "exitCode": 0,
+      "counts": {
+        "pass": 61,
+        "fail": 0
+      }
+    },
+    {
+      "receipt": "native-precision-provider-suite",
+      "scope": "shared provider reader and native producer",
+      "sourceCommit": "4205c0796de07da658dd334b3ba87de81d904681",
+      "completed": true,
+      "exitCode": 0,
+      "counts": {
+        "pass": 351,
+        "fail": 0
+      }
+    },
+    {
+      "receipt": "native-precision-setup",
+      "scope": "agent setup and statusline preservation",
+      "sourceCommit": "4205c0796de07da658dd334b3ba87de81d904681",
+      "completed": true,
+      "exitCode": 0,
+      "counts": {
+        "pass": 413,
+        "skip": 1,
+        "fail": 0
+      }
+    },
+    {
+      "receipt": "native-qualified-runtime",
+      "scope": "chat runtime and ACP synthetic transport",
+      "sourceCommit": "4205c0796de07da658dd334b3ba87de81d904681",
+      "completed": true,
+      "exitCode": 0,
+      "counts": {
+        "pass": 431,
+        "skip": 2,
+        "fail": 0
+      }
+    },
+    {
+      "receipt": "native-qualified-trpc",
+      "scope": "tRPC",
+      "sourceCommit": "4205c0796de07da658dd334b3ba87de81d904681",
+      "completed": true,
+      "exitCode": 0,
+      "counts": {
+        "pass": 702,
+        "fail": 0
+      }
+    },
+    {
+      "receipt": "native-qualified-lint",
+      "scope": "lint",
+      "sourceCommit": "4205c0796de07da658dd334b3ba87de81d904681",
+      "completed": true,
+      "exitCode": 0
+    },
+    {
+      "receipt": "native-qualified-types",
+      "scope": "full repository typecheck",
+      "sourceCommit": "4205c0796de07da658dd334b3ba87de81d904681",
+      "completed": true,
+      "exitCode": 0,
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "taskCount": 40
+    },
+    {
+      "receipt": "native-qualified-chat",
+      "scope": "chat",
+      "sourceCommit": "4205c0796de07da658dd334b3ba87de81d904681",
+      "completed": true,
+      "exitCode": 0,
+      "command": [
+        "bun",
+        "test",
+        "--isolate",
+        "--max-concurrency",
+        "1"
+      ],
+      "counts": {
+        "pass": 94,
+        "fail": 0
+      }
+    },
+    {
+      "receipt": "native-reader-exact-provider",
+      "scope": "PR8464 provider reader",
+      "sourceCommit": "7f2a262e282c85f6354ccd726bb9b9da452bb2e0",
+      "completed": true,
+      "exitCode": 0,
+      "command": [
+        "bun",
+        "test",
+        "--isolate",
+        "--max-concurrency",
+        "1",
+        "./src/trpc/router/usage"
+      ],
+      "counts": {
+        "pass": 317,
+        "fail": 0
+      }
+    },
+    {
+      "receipt": "native-reader-exact-types",
+      "scope": "PR8464 host typecheck",
+      "sourceCommit": "7f2a262e282c85f6354ccd726bb9b9da452bb2e0",
+      "completed": true,
+      "exitCode": 0,
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ]
+    },
+    {
+      "receipt": "native-reader-exact-lint",
+      "scope": "PR8464 root lint",
+      "sourceCommit": "7f2a262e282c85f6354ccd726bb9b9da452bb2e0",
+      "completed": true,
+      "exitCode": 0,
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ]
+    }
+  ],
+  "countingNote": "Focused boundary tests overlap the provider suite; do not add those counts into a unique-test total. ACP entries are synthetic. These completed scoped checks are not an all-repository pass.",
+  "earlierBroadRun": {
+    "sourceCommit": "72fdf73dad1ce802779fc47da89e9d7dedd73d51",
+    "passed": false,
+    "hostCounts": {
+      "pass": 3106,
+      "fail": 8,
+      "todo": 8,
+      "unhandledErrors": 6
+    },
+    "failedTestFilesUnchangedFromUpstream": true,
+    "producerDidNotChangeTracedFailureImplementations": true,
+    "pureUpstreamRuntimeReproductionClaimed": false,
+    "defaultTestTimeoutMs": 5000,
+    "unchangedGitCasesAtDefaultTimeout": 7,
+    "remainingFailure": "owned daemon-test helper did not initialize before its existing 3000ms wait; disposal assertion was not reached",
+    "fullSuiteGreenClaimed": false
+  },
+  "pendingFinalEvidence": [],
+  "redaction": {
+    "accountNamesOmitted": true,
+    "localPathsOmitted": true,
+    "profileHashesOmitted": true,
+    "quotaValuesAndResetDatesOmitted": true,
+    "nativeSessionIdsAndPidsOmitted": true,
+    "rawPayloadsAndTranscriptTextOmitted": true
+  },
+  "incrementalProducer": {
+    "nativeSource": "4205c0796de07da658dd334b3ba87de81d904681",
+    "prerequisiteComposition": "17dfafa3046950775bd18e2e5a155be68053084a",
+    "prerequisites": {
+      "account8462": "c7c54f5de2517ddcc890448b6c8f8c20196831d3",
+      "quota8464": "7f2a262e282c85f6354ccd726bb9b9da452bb2e0"
+    },
+    "sharedResolutionsFromReviewedSource": [
+      "packages/host-service/src/trpc/router/usage/profiles.ts",
+      "packages/host-service/src/trpc/router/usage/session-account/session-account.ts"
+    ],
+    "incrementalPaths": [
+      "docs/environment-variables.md",
+      "docs/native-claude-usage.md",
+      "packages/agent-setup/src/agent-wrappers-claude-codex-opencode.ts",
+      "packages/agent-setup/src/claude-usage-statusline.test.ts",
+      "packages/agent-setup/src/claude-usage-statusline.ts",
+      "packages/agent-setup/templates/claude-usage-statusline.cjs",
+      "packages/chat-runtime/src/harness/acp/acpAdapter.test.ts",
+      "packages/chat-runtime/src/harness/acp/acpAdapter.ts",
+      "packages/host-service/src/chat-v3/acpHarnesses.ts",
+      "packages/host-service/src/chat-v3/nativeClaudeUsage.test.ts",
+      "packages/host-service/src/chat-v3/nativeClaudeUsage.ts",
+      "packages/host-service/src/trpc/router/agents/agents.ts",
+      "packages/host-service/src/trpc/router/agents/launch-account.ts",
+      "packages/host-service/src/trpc/router/notifications/native-claude-usage.test.ts",
+      "packages/host-service/src/trpc/router/notifications/native-claude-usage.ts",
+      "packages/host-service/src/trpc/router/notifications/notifications.ts"
+    ],
+    "incrementalFiles": 16,
+    "schemaChanges": false,
+    "uiChanges": false
+  }
+}

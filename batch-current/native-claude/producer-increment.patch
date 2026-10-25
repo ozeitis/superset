@@ -1,0 +1,2086 @@
+diff --git a/docs/environment-variables.md b/docs/environment-variables.md
+index e9a2cbe4d..5b3f9677d 100644
+--- a/docs/environment-variables.md
++++ b/docs/environment-variables.md
+@@ -93,6 +93,8 @@ or the value arrives empty.
+ 
+ ## Launcher-owned runtime values
+ 
++`SUPERSET_NATIVE_CLAUDE_USAGE` is a local host opt-in for passive Claude subscription measurements. Only `1` enables it; the default is off. The host passes it through an explicitly selected account's new terminal command and consumes ACP metadata through that account's immutable launch context. It does not retrofit running terminals or change provider settings. This runtime preference is not a cloud API secret and does not belong in shared environment templates or deployment workflows.
++
+ `SUPERSET_HOST_INSTALL_SOURCE` is set by the desktop coordinator (`desktop`) or standalone CLI spawner (`cli`) on the host child process. A checkout may set `dev`; absent/unrecognized values report `unknown`. This is install provenance, not an API deployment setting: do not put it in shared `.env` templates or deployment secrets. The host ignores login-shell values for this key. In-place updates additionally require a standalone entrypoint and a valid install layout.
+ 
+ `SUPERSET_AGENT_LAUNCH_ID` is set by the outer agent wrapper to a process-and-start-time identifier. Hook children inherit it so a new launch in the same terminal cannot inherit the previous login attribution. It is runtime metadata, not a deployment secret or user setting; it does not belong in `.env` templates or deploy workflows.
+diff --git a/docs/native-claude-usage.md b/docs/native-claude-usage.md
+new file mode 100644
+index 000000000..654b2dfb3
+--- /dev/null
++++ b/docs/native-claude-usage.md
+@@ -0,0 +1,45 @@
++# Passive Claude subscription usage
++
++The host can reuse rate-limit measurements already returned to an explicitly selected Claude account. This is an optional producer for the shared usage tracker, not an additional provider poller.
++
++## Enable
++
++Start the host with `SUPERSET_NATIVE_CLAUDE_USAGE=1`, then select a Claude subscription account through Superset's account picker. The default is off. Turning this on does not edit any provider profile, settings file, login or account default.
++
++For a new terminal launch, Superset adds a per-process `--settings` status-line command. It preserves an existing command's stdin, stdout, stderr, exit status and status-line options. Claude documents that a custom status line hides some built-in footer keyboard hints. Disable the host opt-in to keep the normal footer on subsequent launches.
++
++Existing chats continue running. They receive the terminal hook only on a later natural **new** launch. Attach, resume, continue, fork, print/output-format and managed or ambiguous settings paths keep the original command unchanged. No configuration flag is added to a background attachment: Claude's attach behavior changes when configuration flags are supplied.
++
++The selected `claude-acp` harness also consumes the official adapter's `_claude/rateLimit` usage metadata. It uses the existing immutable account launch context and does not add status-line settings. The older accountless `claude-code` SDK harness remains on the shared HTTP tracker.
++
++## Identity and age
++
++Before a selected process starts, the host captures an opaque generation derived from its current credential, canonical profile and immutable public account identity. The native session and launch are bound separately. Lifecycle hooks require the terminal's existing attribution token and the exact live terminal, workspace, launch, native session and pinned account. A reported path, email or payload account name cannot authorize usage.
++
++The cached provider proof must independently authenticate the same principal and organization under that exact credential generation. Looking up that proof does not issue HTTP requests. With a cold proof cache, native counters and measurements remain quarantined. A later natural status-line frame or ACP event can promote them after the proof warms, preserving their original measurement dates and duplicate markers. It never requires the user to exit a chat just to warm the proof.
++
++The first status-line frame is a baseline. A rise in `cost.total_api_duration_ms` is required before supplied windows become observations. Timer, startup and configuration replays keep the old date. ACP replay and foreign/subagent events cannot advance the response counter. A restored SDK rate-limit event alone is not a new measurement. Each supplied window retains its own `observedAt` and source; a missing window is not fabricated. Lower utilization from a late event in the same reset epoch cannot replace a newer reading.
++
++The native payload does not expose a server observation timestamp. The host stamps each receipt synchronously before queuing or asynchronous identity validation. Proven API progress retains that original receipt as `observedAt` through caching, host restart and proof promotion. Missing, future or more than six-minute-old receipts are refused. Native display and HTTP-deferral eligibility expire together after six minutes; provider and financial readings keep their separate original dates and policies. An idle render or delayed validation cannot make a reading fresh.
++
++## Bounds and fallback
++
++- Claude currently documents the terminal `rate_limits` fields for Pro and Max. Windows can be independently absent. Team accounts and unsupported native versions continue using the common HTTP tracker.
++- Only `five_hour` and `seven_day` subscription windows are accepted. Native spend limits, wallet balances, purchased credits, reset credits, plan names and model-specific limits are never inferred.
++- Credential rotation, sign-out, registration changes, expired proof or conflicting organizations quarantine the feed. The existing HTTP tracker remains available. A running process cannot be silently rebound to a different credential generation.
++- A missing readable credential at prelaunch, or a host crash before the first authenticated native-session capture, cannot acquire authority from a later unbound hook. It falls back to HTTP until a later natural new launch.
++- Reconnecting an already-running background worker uses HTTP fallback. Its original hook environment cannot authorize a successor terminal. Late predecessor samples are ignored; previously recorded account measurements retain their original dates only. Pre-feature workers are not claimed to have a native hook.
++- The status-line bridge has a 500 ms total local transport deadline, at most four loopback candidates, a bounded response and private bounded duplicate markers. Failed/cold captures retry locally after a short duplicate cooldown. No provider request is made by this path.
++- Private observation storage contains only digests, bounded quota windows, counters and dates. It excludes credentials, emails, paths, prompts and transcript text. Observation files are written atomically with owner-only permissions and refuse unsafe symlink destinations.
++
++## Verification
++
++Synthetic regression tests cover replay age, host restart, cold-proof promotion, exact credential/profile/principal binding, rotation, foreign sessions, adoption fallback, partial fields and private storage. Real Node subprocess tests exercise the status-line wrapper, original-command preservation, loopback transport, timeout bounds and skipped attach/configuration paths. ACP fake-transport tests exercise real adapter notification handling, response counters and replay refusal. These tests do not launch a provider or change a real profile.
++
++Live qualification, if requested separately, must use one owned disposable chat with an explicit account, an actual native API response and readback through the common tracker. A synthetic payload is not proof of actual provider emission.
++
++Sources checked against current documentation and the pinned adapter:
++
++- [Claude status-line fields and update lifecycle](https://code.claude.com/docs/en/statusline)
++- [Claude sessions and background attachment](https://code.claude.com/docs/en/sessions)
++- [Official Claude ACP adapter v0.85.0 rate-limit forwarding](https://github.com/agentclientprotocol/claude-agent-acp/blob/v0.85.0/src/acp-agent.ts)
+diff --git a/packages/agent-setup/src/agent-wrappers-claude-codex-opencode.ts b/packages/agent-setup/src/agent-wrappers-claude-codex-opencode.ts
+index a9271ea18..d06282780 100644
+--- a/packages/agent-setup/src/agent-wrappers-claude-codex-opencode.ts
++++ b/packages/agent-setup/src/agent-wrappers-claude-codex-opencode.ts
+@@ -11,6 +11,10 @@ import {
+ 	writeFileIfChanged,
+ } from "./agent-wrappers-common";
+ import { getArtifactGuardScriptPath } from "./artifact-guard-hook";
++import {
++	claudeUsageStatuslineLaunch,
++	createClaudeUsageStatuslineScript,
++} from "./claude-usage-statusline";
+ import { getTemplatePath } from "./config";
+ import {
+ 	buildNestedDesiredEntries,
+@@ -296,12 +300,15 @@ export function getOpenCodePluginContent(notifyPath: string): string {
+  * in ~/.claude/settings.json (createClaudeSettingsJson).
+  */
+ export function createClaudeWrapper(): void {
+-	const script = buildWrapperScript("claude", `exec "$REAL_BIN" "$@"`, {
++	createClaudeUsageStatuslineScript();
++	const script = buildWrapperScript("claude", claudeUsageStatuslineLaunch(), {
+ 		agentId: "claude",
+-		beforeLaunch: buildDefaultAccountResolver(
+-			"CLAUDE_CONFIG_DIR",
+-			"default-claude-config-dir",
+-		),
++		beforeLaunch:
++			`_superset_capture_usage=""\n[ -z "$SUPERSET_AGENT_ID" ] && [ "$SUPERSET_NATIVE_CLAUDE_USAGE" = "1" ] && [ "$SUPERSET_PINNED_ACCOUNT" = "CLAUDE_CONFIG_DIR" ] && _superset_capture_usage="1"\n` +
++			buildDefaultAccountResolver(
++				"CLAUDE_CONFIG_DIR",
++				"default-claude-config-dir",
++			),
+ 	});
+ 	createWrapper("claude", script);
+ }
+diff --git a/packages/agent-setup/src/claude-usage-statusline.test.ts b/packages/agent-setup/src/claude-usage-statusline.test.ts
+new file mode 100644
+index 000000000..8cb59e7aa
+--- /dev/null
++++ b/packages/agent-setup/src/claude-usage-statusline.test.ts
+@@ -0,0 +1,458 @@
++import { afterEach, expect, test } from "bun:test";
++import { spawnSync } from "node:child_process";
++import {
++	mkdirSync,
++	mkdtempSync,
++	readFileSync,
++	rmSync,
++	writeFileSync,
++} from "node:fs";
++import { tmpdir } from "node:os";
++import { join } from "node:path";
++import { fileURLToPath } from "node:url";
++
++const directories: string[] = [];
++afterEach(() => {
++	for (const directory of directories.splice(0))
++		rmSync(directory, { recursive: true, force: true });
++});
++const bridge = fileURLToPath(
++	new URL("../templates/claude-usage-statusline.cjs", import.meta.url),
++);
++function fixture() {
++	const dir = mkdtempSync(join(tmpdir(), "claude-native-bridge-"));
++	directories.push(dir);
++	const home = join(dir, "home");
++	const cwd = join(dir, "project");
++	const config = join(home, ".claude");
++	mkdirSync(config, { recursive: true });
++	mkdirSync(cwd);
++	const env = {
++		...process.env,
++		HOME: home,
++		SUPERSET_HOME_DIR: join(home, ".superset"),
++		CLAUDE_CONFIG_DIR: config,
++		SUPERSET_AGENT_ID: "claude",
++		SUPERSET_NATIVE_CLAUDE_USAGE: "1",
++		SUPERSET_PINNED_ACCOUNT: "CLAUDE_CONFIG_DIR",
++		SUPERSET_TERMINAL_ID: "terminal",
++		SUPERSET_AGENT_LAUNCH_ID: "launch",
++		SUPERSET_ACCOUNT_ATTRIBUTION_TOKEN: "fixture-attribution",
++	};
++	return { dir, cwd, config, env };
++}
++test("real Node launch overlay preserves existing statusline options and leaves every settings file untouched", () => {
++	const f = fixture();
++	const settings = JSON.stringify({
++		statusLine: {
++			type: "command",
++			command: "printf 'custom output\\n'",
++			padding: 3,
++			refreshInterval: 9,
++			hideVimModeIndicator: true,
++		},
++		permissions: { defaultMode: "default" },
++	});
++	writeFileSync(join(f.config, "settings.json"), settings);
++	const child = spawnSync("node", [bridge, "--prepare"], {
++		cwd: f.cwd,
++		env: f.env,
++		encoding: "utf8",
++	});
++	expect(child.status).toBe(0);
++	const overlay = JSON.parse(child.stdout);
++	expect(overlay.statusLine).toMatchObject({
++		padding: 3,
++		refreshInterval: 9,
++		hideVimModeIndicator: true,
++	});
++	expect(overlay.statusLine.command).toContain("--status");
++	expect(Object.keys(overlay)).toEqual(["statusLine"]);
++	expect(readFileSync(join(f.config, "settings.json"), "utf8")).toBe(settings);
++	for (const args of [
++		["--settings", "{}"],
++		["--setting-sources=user"],
++		["--print"],
++		["attach", "session"],
++		["--resume", "session"],
++		["-r", "session"],
++		["--continue"],
++		["-c"],
++		["--fork-session"],
++		["--output-format", "stream-json"],
++	]) {
++		expect(
++			spawnSync("node", [bridge, "--prepare", ...args], {
++				cwd: f.cwd,
++				env: f.env,
++				encoding: "utf8",
++			}).stdout,
++		).toBe("");
++	}
++});
++test("real Node bridge preserves user stdin and output, sends only bounded native fields to the owning host", async () => {
++	const f = fixture();
++	const requests: unknown[] = [];
++	const host = Bun.serve({
++		port: 0,
++		async fetch(request) {
++			requests.push(await request.json());
++			return Response.json({ result: { data: { json: { ignored: false } } } });
++		},
++	});
++	try {
++		writeFileSync(
++			join(f.config, "settings.json"),
++			JSON.stringify({
++				statusLine: {
++					type: "command",
++					command: "printf 'unchanged output\\n'; cat",
++				},
++			}),
++		);
++		const prepared = spawnSync("node", [bridge, "--prepare"], {
++			cwd: f.cwd,
++			env: f.env,
++			encoding: "utf8",
++		});
++		const overlay = JSON.parse(prepared.stdout);
++		const input = JSON.stringify({
++			session_id: "session",
++			cost: { total_api_duration_ms: 123, total_cost_usd: 2 },
++			rate_limits: {
++				five_hour: { used_percentage: 25, resets_at: 1_800_000_600 },
++				spend_limit: { used_usd: 999 },
++			},
++			transcript_path: "/never-forward",
++			account: { email: "never-forward@example.test" },
++			other: "never-forward",
++		});
++		const proc = Bun.spawn(["sh", "-c", overlay.statusLine.command], {
++			cwd: f.cwd,
++			env: {
++				...f.env,
++				SUPERSET_HOST_AGENT_HOOK_URL: `http://127.0.0.1:${host.port}/trpc/notifications.hook`,
++			},
++			stdin: Buffer.from(input),
++			stdout: "pipe",
++			stderr: "pipe",
++		});
++		const [output, code, errors] = await Promise.all([
++			new Response(proc.stdout).text(),
++			proc.exited,
++			new Response(proc.stderr).text(),
++		]);
++		expect(code).toBe(0);
++		expect(errors).toBe("");
++		expect(output).toBe(`unchanged output\n${input}`);
++		const repeated = Bun.spawn(["sh", "-c", overlay.statusLine.command], {
++			cwd: f.cwd,
++			env: {
++				...f.env,
++				SUPERSET_HOST_AGENT_HOOK_URL: `http://127.0.0.1:${host.port}/trpc/notifications.hook`,
++			},
++			stdin: Buffer.from(input),
++			stdout: "pipe",
++			stderr: "pipe",
++		});
++		expect(await new Response(repeated.stdout).text()).toBe(
++			`unchanged output\n${input}`,
++		);
++		expect(await repeated.exited).toBe(0);
++		expect(requests).toHaveLength(1);
++		expect(requests[0]).toEqual({
++			json: {
++				terminalId: "terminal",
++				launchId: "launch",
++				attributionToken: "fixture-attribution",
++				agent: { agentId: "claude", sessionId: "session" },
++				nativeClaudeUsage: {
++					session_id: "session",
++					cost: { total_api_duration_ms: 123 },
++					rate_limits: {
++						five_hour: { used_percentage: 25, resets_at: 1_800_000_600 },
++					},
++				},
++			},
++		});
++	} finally {
++		host.stop(true);
++	}
++});
++test("ambiguous parent settings and nested working folders leave the native launch unchanged", () => {
++	const f = fixture();
++	mkdirSync(join(f.dir, ".claude"));
++	writeFileSync(
++		join(f.dir, ".claude", "settings.json"),
++		JSON.stringify({
++			statusLine: { type: "command", command: "printf parent" },
++		}),
++	);
++	expect(
++		spawnSync("node", [bridge, "--prepare"], {
++			cwd: f.cwd,
++			env: f.env,
++			encoding: "utf8",
++		}).stdout,
++	).toBe("");
++});
++
++test("statusline feed is opt-in and requires an explicit account pin", () => {
++	const f = fixture();
++	for (const override of [
++		{ SUPERSET_NATIVE_CLAUDE_USAGE: "" },
++		{ SUPERSET_PINNED_ACCOUNT: "" },
++	]) {
++		const child = spawnSync("node", [bridge, "--prepare"], {
++			cwd: f.cwd,
++			env: { ...f.env, ...override },
++			encoding: "utf8",
++		});
++		expect(child.status).toBe(0);
++		expect(child.stdout).toBe("");
++	}
++});
++
++test("capture transport has an absolute deadline even when a local host trickles bytes", async () => {
++	const f = fixture();
++	let stopped = false;
++	const host = Bun.serve({
++		port: 0,
++		fetch() {
++			return new Response(
++				new ReadableStream({
++					start(controller) {
++						const timer = setInterval(() => {
++							if (stopped) {
++								clearInterval(timer);
++								return;
++							}
++							try {
++								controller.enqueue(new TextEncoder().encode(" "));
++							} catch {
++								clearInterval(timer);
++							}
++						}, 25);
++					},
++				}),
++			);
++		},
++	});
++	try {
++		const saved = Buffer.from(
++			JSON.stringify({ type: "command", command: "printf 'kept output'" }),
++		).toString("base64url");
++		const started = Date.now();
++		const proc = Bun.spawn(["node", bridge, "--status", saved], {
++			cwd: f.cwd,
++			env: {
++				...f.env,
++				SUPERSET_HOST_AGENT_HOOK_URL: `http://127.0.0.1:${host.port}/trpc/notifications.hook`,
++			},
++			stdin: Buffer.from(
++				JSON.stringify({
++					session_id: "owned",
++					cost: { total_api_duration_ms: 0 },
++				}),
++			),
++			stdout: "pipe",
++			stderr: "pipe",
++		});
++		expect(await new Response(proc.stdout).text()).toBe("kept output");
++		expect(await proc.exited).toBe(0);
++		expect(Date.now() - started).toBeLessThan(2000);
++	} finally {
++		stopped = true;
++		await host.stop(true);
++	}
++});
++
++test("a user's statusline exit code and output survive a rejected or unavailable capture", () => {
++	const f = fixture();
++	const saved = Buffer.from(
++		JSON.stringify({ type: "command", command: "printf 'retained'; exit 7" }),
++	).toString("base64url");
++	const child = spawnSync("node", [bridge, "--status", saved], {
++		cwd: f.cwd,
++		env: {
++			...f.env,
++			SUPERSET_HOST_AGENT_HOOK_URL:
++				"https://public.example.test/trpc/notifications.hook",
++		},
++		input: JSON.stringify({
++			session_id: "owned",
++			cost: { total_api_duration_ms: 0 },
++		}),
++		encoding: "utf8",
++	});
++	expect(child.status).toBe(7);
++	expect(child.stdout).toBe("retained");
++});
++
++test("native collection reaches the host while a custom statusline waits for its marker", async () => {
++	const f = fixture();
++	const marker = join(f.dir, "collector-received");
++	const custom = join(f.dir, "original.cjs");
++	const input = Buffer.from(
++		JSON.stringify({
++			session_id: "owned",
++			cost: { total_api_duration_ms: 123 },
++			rate_limits: {
++				five_hour: { used_percentage: 25, resets_at: 1_800_000_600 },
++			},
++		}),
++	);
++	const outputPrefix = Buffer.from([0, 255, 10]);
++	const expectedErrors = Buffer.from([101, 114, 114, 0, 254]);
++	writeFileSync(
++		custom,
++		`
++const fs = require("node:fs");
++const path = require("node:path");
++const marker = ${JSON.stringify(marker)};
++const chunks = [];
++process.stdin.on("data", chunk => chunks.push(chunk));
++process.stdin.on("end", () => {
++ let watcher;
++ let timer;
++ let finished = false;
++ const finish = () => {
++  if (finished || !fs.existsSync(marker)) return;
++  finished = true;
++  clearTimeout(timer);
++  watcher?.close();
++  process.stdout.write(Buffer.from([0, 255, 10]));
++  process.stdout.write(Buffer.concat(chunks));
++  process.stderr.write(Buffer.from([101, 114, 114, 0, 254]));
++  process.exitCode = 7;
++ };
++ watcher = fs.watch(path.dirname(marker), finish);
++ timer = setTimeout(() => {
++  watcher.close();
++  process.stderr.write("collector never reached the host");
++  process.exitCode = 91;
++ }, 1500);
++ finish();
++});
++`,
++	);
++	let requests = 0;
++	const host = Bun.serve({
++		port: 0,
++		async fetch(request) {
++			const body = (await request.json()) as {
++				json: { nativeClaudeUsage: { session_id: string } };
++			};
++			expect(body.json.nativeClaudeUsage.session_id).toBe("owned");
++			requests++;
++			writeFileSync(marker, "received");
++			return Response.json({ result: { data: { json: { ignored: false } } } });
++		},
++	});
++	try {
++		const saved = Buffer.from(
++			JSON.stringify({
++				type: "command",
++				command: `node '${custom.replaceAll("'", "'\\''")}'`,
++				padding: 3,
++			}),
++		).toString("base64url");
++		const proc = Bun.spawn(["node", bridge, "--status", saved], {
++			cwd: f.cwd,
++			env: {
++				...f.env,
++				SUPERSET_HOST_AGENT_HOOK_URL: `http://127.0.0.1:${host.port}/trpc/notifications.hook`,
++			},
++			stdin: input,
++			stdout: "pipe",
++			stderr: "pipe",
++		});
++		const [output, errors, code] = await Promise.all([
++			new Response(proc.stdout).arrayBuffer(),
++			new Response(proc.stderr).arrayBuffer(),
++			proc.exited,
++		]);
++		expect(code).toBe(7);
++		expect(Buffer.from(output)).toEqual(Buffer.concat([outputPrefix, input]));
++		expect(Buffer.from(errors)).toEqual(expectedErrors);
++		expect(requests).toBe(1);
++	} finally {
++		await host.stop(true);
++	}
++});
++
++test("custom statusline output remains bounded while collection is unavailable", async () => {
++	const f = fixture();
++	const custom = join(f.dir, "large-output.cjs");
++	writeFileSync(custom, "process.stdout.write(Buffer.alloc(600 * 1024, 65));");
++	const saved = Buffer.from(
++		JSON.stringify({
++			type: "command",
++			command: `node '${custom.replaceAll("'", "'\\''")}'`,
++		}),
++	).toString("base64url");
++	const proc = Bun.spawn(["node", bridge, "--status", saved], {
++		cwd: f.cwd,
++		env: {
++			...f.env,
++			SUPERSET_HOST_AGENT_HOOK_URL:
++				"https://public.example.test/trpc/notifications.hook",
++		},
++		stdin: Buffer.from(
++			JSON.stringify({
++				session_id: "owned",
++				cost: { total_api_duration_ms: 0 },
++			}),
++		),
++		stdout: "pipe",
++		stderr: "pipe",
++	});
++	const [output, _errors, code] = await Promise.all([
++		new Response(proc.stdout).arrayBuffer(),
++		new Response(proc.stderr).arrayBuffer(),
++		proc.exited,
++	]);
++	expect(code).toBe(1);
++	expect(output.byteLength).toBeLessThanOrEqual(512 * 1024);
++	expect(output.byteLength).toBeGreaterThan(0);
++});
++
++test("the custom command keeps the combined stdout/stderr buffer ceiling", async () => {
++	const f = fixture();
++	const custom = join(f.dir, "combined-output.cjs");
++	writeFileSync(
++		custom,
++		"process.stdout.write(Buffer.alloc(300 * 1024, 65)); process.stderr.write(Buffer.alloc(300 * 1024, 66));",
++	);
++	const saved = Buffer.from(
++		JSON.stringify({
++			type: "command",
++			command: `node '${custom.replaceAll("'", "'\\''")}'`,
++		}),
++	).toString("base64url");
++	const proc = Bun.spawn(["node", bridge, "--status", saved], {
++		cwd: f.cwd,
++		env: {
++			...f.env,
++			SUPERSET_HOST_AGENT_HOOK_URL:
++				"https://public.example.test/trpc/notifications.hook",
++		},
++		stdin: Buffer.from(
++			JSON.stringify({
++				session_id: "owned",
++				cost: { total_api_duration_ms: 0 },
++			}),
++		),
++		stdout: "pipe",
++		stderr: "pipe",
++	});
++	const [output, errors, code] = await Promise.all([
++		new Response(proc.stdout).arrayBuffer(),
++		new Response(proc.stderr).arrayBuffer(),
++		proc.exited,
++	]);
++	expect(code).toBe(1);
++	expect(output.byteLength + errors.byteLength).toBeLessThanOrEqual(512 * 1024);
++	expect(output.byteLength).toBeGreaterThan(0);
++	expect(errors.byteLength).toBeGreaterThan(0);
++});
+diff --git a/packages/agent-setup/src/claude-usage-statusline.ts b/packages/agent-setup/src/claude-usage-statusline.ts
+new file mode 100644
+index 000000000..404ceb270
+--- /dev/null
++++ b/packages/agent-setup/src/claude-usage-statusline.ts
+@@ -0,0 +1,27 @@
++import { readFileSync } from "node:fs";
++import { join } from "node:path";
++import { getTemplatePath } from "./config";
++import { getHooksDir } from "./paths";
++import { writeFileIfChanged } from "./write-file-if-changed";
++
++export const CLAUDE_USAGE_STATUSLINE_SCRIPT = "claude-usage-statusline.cjs";
++export function createClaudeUsageStatuslineScript(): void {
++	writeFileIfChanged(
++		join(getHooksDir(), CLAUDE_USAGE_STATUSLINE_SCRIPT),
++		readFileSync(getTemplatePath(CLAUDE_USAGE_STATUSLINE_SCRIPT), "utf8"),
++		0o755,
++	);
++}
++function quote(value: string): string {
++	return `'${value.replaceAll("'", `'\\''`)}'`;
++}
++export function claudeUsageStatuslineLaunch(): string {
++	const script = `"$SUPERSET_HOME_DIR/hooks/${CLAUDE_USAGE_STATUSLINE_SCRIPT}"`;
++	return `if [ "$_superset_capture_usage" = "1" ] && [ "$SUPERSET_AGENT_ID" = "claude" ] && [ -n "$SUPERSET_HOME_DIR" ] && [ -f ${script} ]; then
++  _superset_usage_settings=$(ELECTRON_RUN_AS_NODE=1 ${quote(process.execPath)} ${script} --prepare "$@" 2>/dev/null)
++  if [ -n "$_superset_usage_settings" ]; then
++    exec "$REAL_BIN" --settings "$_superset_usage_settings" "$@"
++  fi
++fi
++exec "$REAL_BIN" "$@"`;
++}
+diff --git a/packages/agent-setup/templates/claude-usage-statusline.cjs b/packages/agent-setup/templates/claude-usage-statusline.cjs
+new file mode 100644
+index 000000000..cd1ee07fc
+--- /dev/null
++++ b/packages/agent-setup/templates/claude-usage-statusline.cjs
+@@ -0,0 +1,442 @@
++const fs = require("node:fs");
++const path = require("node:path");
++const os = require("node:os");
++const http = require("node:http");
++const { createHash, randomUUID } = require("node:crypto");
++const { spawn, spawnSync } = require("node:child_process");
++
++const MAX_INPUT = 512 * 1024;
++function readJson(file) {
++	const info = fs.statSync(file);
++	if (!info.isFile() || info.size > MAX_INPUT)
++		throw new Error("Invalid settings");
++	const value = JSON.parse(fs.readFileSync(file, "utf8"));
++	if (!value || typeof value !== "object" || Array.isArray(value))
++		throw new Error("Invalid settings");
++	return value;
++}
++function optionalSettings(file) {
++	try {
++		return readJson(file);
++	} catch (error) {
++		if (error.code === "ENOENT") return {};
++		throw error;
++	}
++}
++function quote(value) {
++	return `'${value.replaceAll("'", "'\\''")}'`;
++}
++function prepare(args) {
++	if (
++		process.env.SUPERSET_NATIVE_CLAUDE_USAGE !== "1" ||
++		process.env.SUPERSET_PINNED_ACCOUNT !== "CLAUDE_CONFIG_DIR" ||
++		!process.env.SUPERSET_TERMINAL_ID ||
++		!process.env.SUPERSET_AGENT_LAUNCH_ID ||
++		!process.env.SUPERSET_ACCOUNT_ATTRIBUTION_TOKEN ||
++		process.env.SUPERSET_AGENT_ID !== "claude"
++	)
++		return;
++	for (const arg of args) {
++		if (arg === "--") break;
++		if (
++			/^(--settings|--setting-sources|--output-format|--input-format|--print|--bare|--help|--version|--resume|--continue|--fork-session|--remote|--teleport)(=|$)/.test(
++				arg,
++			) ||
++			[
++				"-p",
++				"-h",
++				"-V",
++				"-v",
++				"-r",
++				"-c",
++				"attach",
++				"resume",
++				"agents",
++				"sessions",
++				"background",
++			].includes(arg)
++		)
++			return;
++	}
++	const config =
++		process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
++	for (const file of [
++		path.join(config, "managed-settings.json"),
++		"/Library/Application Support/ClaudeCode/managed-settings.json",
++		"/etc/claude-code/managed-settings.json",
++	])
++		if (fs.existsSync(file)) return;
++	const cwd = process.cwd();
++	const git = spawnSync("git", ["-C", cwd, "rev-parse", "--show-toplevel"], {
++		encoding: "utf8",
++		stdio: ["ignore", "pipe", "ignore"],
++		timeout: 1000,
++	});
++	const root = git.status === 0 ? git.stdout.trim() : cwd;
++	// Claude's directory traversal can select parent settings. Preserve unknown precedence.
++	if (path.resolve(root) !== path.resolve(cwd)) return;
++	for (
++		let parent = path.dirname(cwd);
++		parent !== path.dirname(parent);
++		parent = path.dirname(parent)
++	) {
++		if (
++			fs.existsSync(path.join(parent, ".claude", "settings.json")) ||
++			fs.existsSync(path.join(parent, ".claude", "settings.local.json"))
++		)
++			return;
++	}
++	const files = [
++		path.join(config, "settings.json"),
++		path.join(root, ".claude", "settings.json"),
++		path.join(root, ".claude", "settings.local.json"),
++	];
++	let original;
++	for (const file of files) {
++		const settings = optionalSettings(file);
++		if (Object.hasOwn(settings, "statusLine")) original = settings.statusLine;
++	}
++	if (
++		original !== undefined &&
++		(!original ||
++			typeof original !== "object" ||
++			original.type !== "command" ||
++			typeof original.command !== "string" ||
++			original.command.length > 65536)
++	)
++		return;
++	const saved = Buffer.from(JSON.stringify(original || {})).toString(
++		"base64url",
++	);
++	const command = `ELECTRON_RUN_AS_NODE=1 ${quote(process.execPath)} ${quote(__filename)} --status ${quote(saved)}`;
++	process.stdout.write(
++		JSON.stringify({
++			statusLine: { ...(original || {}), type: "command", command },
++		}),
++	);
++}
++function sanitize(data) {
++	if (
++		!data ||
++		typeof data !== "object" ||
++		Array.isArray(data) ||
++		typeof data.session_id !== "string" ||
++		!data.session_id ||
++		data.session_id.length > 256 ||
++		data.agent?.name
++	)
++		return null;
++	const cost = data.cost?.total_api_duration_ms;
++	const result = {
++		session_id: data.session_id,
++		cost: {
++			total_api_duration_ms:
++				typeof cost === "number" && Number.isFinite(cost) && cost >= 0
++					? cost
++					: null,
++		},
++		rate_limits: {},
++	};
++	for (const id of ["five_hour", "seven_day"]) {
++		const window = data.rate_limits?.[id];
++		if (
++			window &&
++			typeof window.used_percentage === "number" &&
++			Number.isFinite(window.used_percentage) &&
++			window.used_percentage >= 0 &&
++			window.used_percentage <= 100 &&
++			typeof window.resets_at === "number" &&
++			Number.isFinite(window.resets_at)
++		)
++			result.rate_limits[id] = {
++				used_percentage: window.used_percentage,
++				resets_at: window.resets_at,
++			};
++	}
++	return result;
++}
++function frameMarker(data) {
++	const home = process.env.SUPERSET_HOME_DIR;
++	if (!home) return null;
++	const directory = path.join(home, "state", "native-claude-feed");
++	try {
++		fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
++		const info = fs.lstatSync(directory);
++		if (
++			!info.isDirectory() ||
++			info.isSymbolicLink() ||
++			(process.platform !== "win32" &&
++				((info.mode & 0o077) !== 0 || info.uid !== process.getuid()))
++		)
++			return null;
++		const hash = (value) =>
++			createHash("sha256").update(JSON.stringify(value)).digest("hex");
++		const file = path.join(
++			directory,
++			`${hash([process.env.SUPERSET_TERMINAL_ID, process.env.SUPERSET_AGENT_LAUNCH_ID])}.json`,
++		);
++		const signature = hash(data);
++		const read = (file) => {
++			const fd = fs.openSync(
++				file,
++				fs.constants.O_RDONLY |
++					fs.constants.O_NOFOLLOW |
++					fs.constants.O_NONBLOCK,
++			);
++			try {
++				const stat = fs.fstatSync(fd);
++				if (
++					!stat.isFile() ||
++					stat.nlink !== 1 ||
++					stat.size > 1024 ||
++					(process.platform !== "win32" &&
++						((stat.mode & 0o077) !== 0 || stat.uid !== process.getuid()))
++				)
++					throw new Error("Unsafe marker");
++				const value = JSON.parse(fs.readFileSync(fd, "utf8"));
++				if (
++					value.version !== 1 ||
++					!/^[a-f0-9]{64}$/.test(value.signature) ||
++					typeof value.accepted !== "boolean" ||
++					!Number.isFinite(value.updatedAt)
++				)
++					throw new Error("Unknown marker");
++				return value;
++			} finally {
++				fs.closeSync(fd);
++			}
++		};
++		let previous;
++		try {
++			previous = read(file);
++		} catch (error) {
++			if (error.code !== "ENOENT") return null;
++		}
++		const now = Date.now();
++		if (
++			previous?.signature === signature &&
++			previous.updatedAt <= now &&
++			now - previous.updatedAt < (previous.accepted ? 24 * 60 * 60_000 : 10_000)
++		)
++			return { skip: true };
++		if (!previous) {
++			const entries = fs.readdirSync(directory);
++			if (entries.length > 1024) return null;
++			const markers = entries
++				.filter((name) => /^[a-f0-9]{64}\.json$/.test(name))
++				.map((name) => ({
++					file: path.join(directory, name),
++					value: read(path.join(directory, name)),
++				}))
++				.sort((a, b) => a.value.updatedAt - b.value.updatedAt);
++			while (markers.length >= 256) fs.unlinkSync(markers.shift().file);
++		}
++		return {
++			skip: false,
++			write(accepted) {
++				const temporary = `${file}.${randomUUID()}.tmp`;
++				try {
++					fs.writeFileSync(
++						temporary,
++						JSON.stringify({
++							version: 1,
++							signature,
++							accepted,
++							updatedAt: Date.now(),
++						}),
++						{ flag: "wx", mode: 0o600 },
++					);
++					fs.renameSync(temporary, file);
++				} finally {
++					try {
++						fs.unlinkSync(temporary);
++					} catch {}
++				}
++			},
++		};
++	} catch {
++		return null;
++	}
++}
++function endpointCandidates() {
++	const urls = [process.env.SUPERSET_HOST_AGENT_HOOK_URL];
++	const directory = path.join(
++		process.env.SUPERSET_HOME_DIR || path.join(os.homedir(), ".superset"),
++		"host",
++	);
++	try {
++		for (const entry of fs.readdirSync(directory).slice(0, 32)) {
++			try {
++				urls.push(
++					new URL(
++						"/trpc/notifications.hook",
++						readJson(path.join(directory, entry, "manifest.json")).endpoint,
++					).href,
++				);
++			} catch {}
++		}
++	} catch {}
++	return [...new Set(urls)].slice(0, 4).flatMap((candidate) => {
++		try {
++			const url = new URL(candidate);
++			return url.protocol === "http:" &&
++				["127.0.0.1", "localhost", "[::1]"].includes(url.hostname) &&
++				!url.username &&
++				!url.password &&
++				url.pathname === "/trpc/notifications.hook"
++				? [url]
++				: [];
++		} catch {
++			return [];
++		}
++	});
++}
++function post(url, body, deadline) {
++	return new Promise((resolve) => {
++		let settled = false;
++		let timer;
++		const finish = (accepted) => {
++			if (settled) return;
++			settled = true;
++			clearTimeout(timer);
++			resolve(accepted);
++		};
++		const request = http.request(
++			url,
++			{
++				method: "POST",
++				headers: {
++					"Content-Type": "application/json",
++					"Content-Length": Buffer.byteLength(body),
++				},
++				timeout: 250,
++			},
++			(response) => {
++				let text = "";
++				response.on("data", (chunk) => {
++					text += chunk;
++					if (text.length > 4096) {
++						response.destroy();
++						request.destroy();
++						finish(false);
++					}
++				});
++				response.on("end", () => finish(/"ignored"\s*:\s*false/.test(text)));
++				response.on("error", () => finish(false));
++			},
++		);
++		request.on("timeout", () => request.destroy());
++		request.on("error", () => finish(false));
++		timer = setTimeout(
++			() => {
++				request.destroy();
++				finish(false);
++			},
++			Math.max(1, deadline - Date.now()),
++		);
++		request.end(body);
++	});
++}
++function originalStatusLine(command, input) {
++	if (typeof command !== "string" || !command) return Promise.resolve(0);
++	return new Promise((resolve) => {
++		try {
++			const child = spawn(command, { shell: true, env: process.env });
++			const stdout = [];
++			const stderr = [];
++			let bytes = 0;
++			let failed = false;
++			const collect = (target, chunk) => {
++				const remaining = MAX_INPUT - bytes;
++				if (remaining > 0) target.push(chunk.subarray(0, remaining));
++				bytes += chunk.length;
++				if (bytes > MAX_INPUT && !failed) {
++					// Keep spawnSync's combined output bound, without adding a user-command timeout.
++					failed = true;
++					child.kill();
++					child.stdin.destroy();
++					child.stdout.destroy();
++					child.stderr.destroy();
++				}
++			};
++			child.stdout.on("data", (chunk) => collect(stdout, chunk));
++			child.stderr.on("data", (chunk) => collect(stderr, chunk));
++			child.on("error", () => {
++				failed = true;
++			});
++			child.on("close", (code) => {
++				process.stdout.write(Buffer.concat(stdout));
++				process.stderr.write(Buffer.concat(stderr));
++				resolve(!failed && typeof code === "number" ? code : 1);
++			});
++			// A command may exit without reading stdin. Its own result remains authoritative.
++			child.stdin.on("error", () => {});
++			child.stdin.end(input);
++		} catch {
++			resolve(1);
++		}
++	});
++}
++async function status(encoded) {
++	let input;
++	try {
++		input = fs.readFileSync(0);
++	} catch {
++		return;
++	}
++	if (input.length > MAX_INPUT) return;
++	let original;
++	try {
++		original = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
++	} catch {
++		return;
++	}
++	// The user's command retains its own lifetime; native collection must not wait for it.
++	const originalResult = originalStatusLine(original.command, input);
++	try {
++		const data = sanitize(JSON.parse(input));
++		if (
++			data &&
++			process.env.SUPERSET_NATIVE_CLAUDE_USAGE === "1" &&
++			process.env.SUPERSET_PINNED_ACCOUNT === "CLAUDE_CONFIG_DIR" &&
++			process.env.SUPERSET_AGENT_ID === "claude" &&
++			process.env.SUPERSET_TERMINAL_ID &&
++			process.env.SUPERSET_AGENT_LAUNCH_ID &&
++			process.env.SUPERSET_ACCOUNT_ATTRIBUTION_TOKEN
++		) {
++			const marker = frameMarker(data);
++			if (!marker || marker.skip) {
++				return;
++			}
++			const body = JSON.stringify({
++				json: {
++					terminalId: process.env.SUPERSET_TERMINAL_ID,
++					launchId: process.env.SUPERSET_AGENT_LAUNCH_ID,
++					attributionToken: process.env.SUPERSET_ACCOUNT_ATTRIBUTION_TOKEN,
++					agent: { agentId: "claude", sessionId: data.session_id },
++					nativeClaudeUsage: data,
++				},
++			});
++			const deadline = Date.now() + 500;
++			let accepted = false;
++			for (const url of endpointCandidates()) {
++				if (Date.now() >= deadline) break;
++				if (await post(url, body, deadline)) {
++					accepted = true;
++					break;
++				}
++			}
++			marker.write(accepted);
++		}
++	} catch {
++	} finally {
++		process.exitCode = await originalResult;
++	}
++}
++if (process.argv[2] === "--prepare") {
++	try {
++		prepare(process.argv.slice(3));
++	} catch {}
++} else if (process.argv[2] === "--status") {
++	status(process.argv[3] || "").catch(() => {});
++}
+diff --git a/packages/chat-runtime/src/harness/acp/acpAdapter.test.ts b/packages/chat-runtime/src/harness/acp/acpAdapter.test.ts
+index 4345cd615..2901f56c9 100644
+--- a/packages/chat-runtime/src/harness/acp/acpAdapter.test.ts
++++ b/packages/chat-runtime/src/harness/acp/acpAdapter.test.ts
+@@ -6066,3 +6066,116 @@ describe("AcpAdapter when the agent fails", () => {
+ 		await adapter.dispose();
+ 	});
+ });
++
++describe("AcpAdapter passive Claude quota feed", () => {
++	it("forwards only main-session live metadata with a response counter", async () => {
++		const agent = new FakeAcpAgent();
++		agent.holdPrompts = true;
++		const sessions: string[] = [];
++		const captured: Array<{
++			sessionId: string;
++			rateLimitInfo: unknown;
++			responseCounter: number;
++		}> = [];
++		let disposed = 0;
++		const adapter = new AcpAdapter({
++			command: "fake",
++			createTransport: (_options, handlers) => agent.transport(handlers),
++			onSessionId: (id) => sessions.push(id),
++			onClaudeRateLimit: (value) => captured.push(value),
++			onDisposed: () => {
++				disposed++;
++			},
++		});
++		const events: AdapterEvent[] = [];
++		void collect(adapter.start({ cwd: "/work" }), events);
++		await flush();
++		expect(sessions).toEqual(["sess-1"]);
++		const usage = {
++			sessionUpdate: "usage_update",
++			used: 10,
++			size: 100,
++			_meta: {
++				"_claude/rateLimit": {
++					rateLimitType: "five_hour",
++					utilization: 0.25,
++					resetsAt: 1_800_000_300,
++				},
++			},
++		};
++		agent.notify("sess-1", usage);
++		agent.notify("foreign", usage);
++		expect(captured.map((item) => item.responseCounter)).toEqual([0]);
++		adapter.prompt([{ type: "text", text: "fixture" }]);
++		await flush();
++		agent.notify("sess-1", {
++			sessionUpdate: "agent_message_chunk",
++			messageId: "response-1",
++			content: { type: "text", text: "fixture" },
++		});
++		agent.notify("sess-1", usage);
++		agent.notify("foreign", {
++			sessionUpdate: "agent_message_chunk",
++			messageId: "foreign-response",
++			content: { type: "text", text: "fixture" },
++		});
++		agent.notify("sess-1", {
++			sessionUpdate: "agent_message_chunk",
++			messageId: "response-1",
++			content: { type: "text", text: "fixture" },
++		});
++		agent.notify("sess-1", usage);
++		expect(captured.map((item) => item.responseCounter)).toEqual([0, 1, 1]);
++		await adapter.dispose();
++		expect(disposed).toBe(1);
++	});
++	it("does not interpret restored history as a current API response", async () => {
++		const agent = new FakeAcpAgent();
++		agent.replayUpdates = [
++			{
++				sessionUpdate: "agent_message",
++				messageId: "old-response",
++				content: [{ type: "text", text: "fixture history" }],
++			},
++			{
++				sessionUpdate: "usage_update",
++				used: 10,
++				size: 100,
++				_meta: {
++					"_claude/rateLimit": {
++						utilization: 0.25,
++						rateLimitType: "five_hour",
++						resetsAt: 1_800_000_300,
++					},
++				},
++			},
++		];
++		const captured: unknown[] = [];
++		const adapter = new AcpAdapter({
++			command: "fake",
++			createTransport: (_options, handlers) => agent.transport(handlers),
++			onClaudeRateLimit: (value) => captured.push(value),
++		});
++		const events: AdapterEvent[] = [];
++		void collect(
++			adapter.start({ cwd: "/work", resume: { harnessSessionId: "sess-1" } }),
++			events,
++		);
++		await flush(40);
++		expect(captured).toEqual([]);
++		agent.notify("sess-1", {
++			sessionUpdate: "usage_update",
++			used: 10,
++			size: 100,
++			_meta: {
++				"_claude/rateLimit": {
++					utilization: 0.25,
++					rateLimitType: "five_hour",
++					resetsAt: 1_800_000_300,
++				},
++			},
++		});
++		expect(captured).toEqual([expect.objectContaining({ responseCounter: 0 })]);
++		await adapter.dispose();
++	});
++});
+diff --git a/packages/chat-runtime/src/harness/acp/acpAdapter.ts b/packages/chat-runtime/src/harness/acp/acpAdapter.ts
+index af0be905a..e8022f34a 100644
+--- a/packages/chat-runtime/src/harness/acp/acpAdapter.ts
++++ b/packages/chat-runtime/src/harness/acp/acpAdapter.ts
+@@ -205,6 +205,13 @@ function sessionMissing(error: unknown): boolean {
+ }
+ 
+ export type AcpAdapterOptions = SpawnAcpOptions & {
++	onSessionId?: (sessionId: string) => void;
++	onClaudeRateLimit?: (input: {
++		sessionId: string;
++		rateLimitInfo: unknown;
++		responseCounter: number;
++	}) => void;
++	onDisposed?: () => void;
+ 	beforePrompt?: () => Promise<void>;
+ 	launch?: () => Promise<Pick<SpawnAcpOptions, "command" | "args" | "env">>;
+ 	/** Selected for a new session that asks for no mode, when the agent offers it. */
+@@ -436,6 +443,9 @@ export class AcpAdapter implements HarnessAdapter {
+ 	private unkeyedImageSequence = 0;
+ 	private queuedPrompts: UserContent[][] = [];
+ 	private disposed = false;
++	private claudeResponseCounter = 0;
++	private claudeResponseTurn: string | null = null;
++	private readonly claudeResponseIds = new Set<string>();
+ 	private dead = false;
+ 	private startupStatus: SessionState["status"] | null = null;
+ 	private stderrTail = "";
+@@ -880,6 +890,9 @@ export class AcpAdapter implements HarnessAdapter {
+ 	async dispose(): Promise<void> {
+ 		if (this.disposed) return;
+ 		this.disposed = true;
++		try {
++			this.options.onDisposed?.();
++		} catch {}
+ 		this.stalePendingApprovals();
+ 		this.backgroundTasks.dispose();
+ 		if (this.shellPoll) clearInterval(this.shellPoll);
+@@ -1076,6 +1089,9 @@ export class AcpAdapter implements HarnessAdapter {
+ 				return;
+ 			}
+ 
++			try {
++				this.options.onSessionId?.(this.sessionId);
++			} catch {}
+ 			this.emitSession({
+ 				status: this.startupStatus ?? "idle",
+ 				harnessSessionId: this.sessionId,
+@@ -1347,7 +1363,45 @@ export class AcpAdapter implements HarnessAdapter {
+ 			return;
+ 		}
+ 
++		if (
++			!this.replaying &&
++			(variant === "agent_message_chunk" || variant === "agent_message") &&
++			this.currentTurn?.status === "running"
++		) {
++			const responseId = messageIdOf(outer.data.update);
++			if (
++				(responseId && !this.claudeResponseIds.has(responseId)) ||
++				(!responseId && this.claudeResponseTurn !== this.currentTurn.id)
++			) {
++				this.claudeResponseTurn = this.currentTurn.id;
++				this.claudeResponseCounter++;
++				if (responseId) this.claudeResponseIds.add(responseId);
++				if (this.claudeResponseIds.size > 256)
++					this.claudeResponseIds.delete(
++						this.claudeResponseIds.values().next().value as string,
++					);
++			}
++		}
+ 		if (variant === "usage_update") {
++			if (!this.replaying && this.sessionId === outer.data.sessionId) {
++				const metadata = (
++					outer.data.update as { _meta?: Record<string, unknown> }
++				)._meta;
++				const rateLimitInfo = metadata?.["_claude/rateLimit"];
++				if (
++					rateLimitInfo &&
++					typeof rateLimitInfo === "object" &&
++					!Array.isArray(rateLimitInfo)
++				) {
++					try {
++						this.options.onClaudeRateLimit?.({
++							sessionId: outer.data.sessionId,
++							rateLimitInfo,
++							responseCounter: this.claudeResponseCounter,
++						});
++					} catch {}
++				}
++			}
+ 			const usage = acpUsageUpdateSchema.safeParse(outer.data.update);
+ 			if (usage.success && usage.data.cost !== undefined) this.main.flush();
+ 			if (
+diff --git a/packages/host-service/src/chat-v3/acpHarnesses.ts b/packages/host-service/src/chat-v3/acpHarnesses.ts
+index 6b2d575be..05ad03517 100644
+--- a/packages/host-service/src/chat-v3/acpHarnesses.ts
++++ b/packages/host-service/src/chat-v3/acpHarnesses.ts
+@@ -6,12 +6,13 @@ import { createAcpAdapter } from "@superset/chat-runtime";
+ import type { HostDb } from "../db";
+ import { resolveAttachmentPath } from "../trpc/router/attachments/storage";
+ import { captureSessionAccount } from "../trpc/router/usage/session-account/session-account";
+-import { validateChatAccount } from "./accountLaunch";
++import { sessionAccountForChat, validateChatAccount } from "./accountLaunch";
+ import { ACP_HARNESSES } from "./acpCatalogue";
+ import { resolveAgentCli } from "./agentCli";
+ import { buildChatAgentEnv } from "./agentEnv";
+ import { storeAgentImage } from "./agentImages";
+ import type { ChatAgentBridge } from "./chatAgentBridge";
++import { createNativeClaudeChatFeed } from "./nativeClaudeUsage";
+ 
+ async function resolveAttachment(attachmentId: string) {
+ 	const resolved = resolveAttachmentPath(attachmentId);
+@@ -48,6 +49,12 @@ export function acpHarnessFactory(
+ 
+ 	return (options) => {
+ 		const launchContext = options.launchContext;
++		const nativeUsage =
++			process.env.SUPERSET_NATIVE_CLAUDE_USAGE === "1" &&
++			entry.binary === "claude" &&
++			launchContext
++				? createNativeClaudeChatFeed()
++				: null;
+ 		return createAcpAdapter({
+ 			command: entry.binary,
+ 			cwd: options.cwd,
+@@ -70,6 +77,9 @@ export function acpHarnessFactory(
+ 			...(entry.clientApprovalModes ? { clientApprovalModes: true } : {}),
+ 			...(entry.forkAtMessage ? { forkAtMessage: true } : {}),
+ 			onSpawn: (pid) => agents?.spawned(options.sessionId, pid),
++			onSessionId: (sessionId) => nativeUsage?.session(sessionId),
++			onClaudeRateLimit: (event) => nativeUsage?.event(event),
++			onDisposed: () => nativeUsage?.dispose(),
+ 			launch: async () => {
+ 				const cli = await resolveAgentCli({
+ 					binary: entry.binary,
+@@ -93,6 +103,10 @@ export function acpHarnessFactory(
+ 						options.harness,
+ 						options.scopeId,
+ 					);
++				if (nativeUsage && launchContext)
++					await nativeUsage.launched(
++						sessionAccountForChat(launchContext.account),
++					);
+ 				void captureSessionAccount(
+ 					entry.binary,
+ 					(entry.binary === "codex" ? env.CODEX_HOME : env.CLAUDE_CONFIG_DIR) ??
+diff --git a/packages/host-service/src/chat-v3/nativeClaudeUsage.test.ts b/packages/host-service/src/chat-v3/nativeClaudeUsage.test.ts
+new file mode 100644
+index 000000000..f3849424c
+--- /dev/null
++++ b/packages/host-service/src/chat-v3/nativeClaudeUsage.test.ts
+@@ -0,0 +1,153 @@
++import { expect, test } from "bun:test";
++import type { NativeClaudeUsageDependencies } from "../trpc/router/usage/native-claude-binding";
++import { createNativeClaudeUsageStore } from "../trpc/router/usage/native-claude-usage";
++import { createNativeClaudeChatFeed } from "./nativeClaudeUsage";
++
++function fixture() {
++	let now = 1_800_000_000_000;
++	let generation = "a".repeat(64);
++	let scope: string | null = null;
++	const account = {
++		agent: "claude" as const,
++		credentialKind: "subscription" as const,
++		pinned: true as const,
++		identity: "e".repeat(64),
++		selection: "/fixture/profile",
++		directory: "/fixture/profile",
++	};
++	const store = createNativeClaudeUsageStore({
++		persist: false,
++		now: () => now,
++	});
++	const deps: NativeClaudeUsageDependencies = {
++		store,
++		validateAccount: async () => true,
++		captureGeneration: async () => generation,
++		resolveScope: async (_a, _d, _i, expected) =>
++			expected === generation ? scope : null,
++	};
++	const feed = createNativeClaudeChatFeed(deps, () => now);
++	const event = (
++		responseCounter: number,
++		used = 0.2,
++		sessionId = "owned-session",
++	) => ({
++		sessionId,
++		responseCounter,
++		rateLimitInfo: {
++			rateLimitType: "five_hour",
++			utilization: used,
++			resetsAt: 1_800_000_300,
++		},
++	});
++	return {
++		feed,
++		account,
++		store,
++		deps,
++		event,
++		advance: (ms = 1000) => {
++			now += ms;
++		},
++		time: () => now,
++		warm: () => {
++			scope = "b".repeat(64);
++		},
++		rotate: () => {
++			generation = "c".repeat(64);
++		},
++	};
++}
++test("ACP first restored event is not fresh; later actual response and cold promotion preserve age", async () => {
++	const f = fixture();
++	await f.feed.launched(f.account);
++	f.feed.session("owned-session");
++	await f.feed.settled();
++	f.feed.event(f.event(0));
++	await f.feed.settled();
++	f.advance();
++	f.feed.event(f.event(1, 0.25));
++	await f.feed.settled();
++	expect(f.store.snapshot("b".repeat(64))).toEqual([]);
++	f.advance();
++	f.warm();
++	f.feed.event(f.event(1, 0.25));
++	await f.feed.settled();
++	expect(f.store.snapshot("b".repeat(64))[0]?.observedAt).toBe(
++		1_800_000_001_000,
++	);
++	f.advance();
++	f.feed.event(f.event(1, 0.25));
++	await f.feed.settled();
++	expect(f.store.snapshot("b".repeat(64))[0]?.observedAt).toBe(
++		1_800_000_001_000,
++	);
++});
++test("pre-spawn generation, foreign session, disposal and unpinned account guards hold", async () => {
++	const f = fixture();
++	await f.feed.launched(f.account);
++	f.rotate();
++	f.feed.session("owned-session");
++	await f.feed.settled();
++	f.warm();
++	f.feed.event(f.event(1));
++	await f.feed.settled();
++	expect(f.store.snapshot("b".repeat(64))).toEqual([]);
++	const other = fixture();
++	other.warm();
++	await other.feed.launched(other.account);
++	other.feed.session("owned-session");
++	await other.feed.settled();
++	other.feed.event(other.event(1, 0.3, "foreign"));
++	await other.feed.settled();
++	expect(other.store.snapshot("b".repeat(64))).toEqual([]);
++	other.feed.dispose();
++	other.feed.event(other.event(1));
++	await other.feed.settled();
++	expect(other.store.snapshot("b".repeat(64))).toEqual([]);
++	const unpinned = fixture();
++	unpinned.warm();
++	await unpinned.feed.launched({ ...unpinned.account, pinned: undefined });
++	unpinned.feed.session("owned-session");
++	unpinned.feed.event(unpinned.event(1));
++	await unpinned.feed.settled();
++	expect(unpinned.store.snapshot("b".repeat(64))).toEqual([]);
++});
++
++test("ACP events retain arrival time while queued behind asynchronous validation", async () => {
++	const f = fixture();
++	f.warm();
++	await f.feed.launched(f.account);
++	f.feed.session("owned-session");
++	await f.feed.settled();
++	let release!: () => void;
++	let entered!: () => void;
++	const waiting = new Promise<void>((resolve) => {
++		entered = resolve;
++	});
++	const gate = new Promise<void>((resolve) => {
++		release = resolve;
++	});
++	let block = true;
++	f.deps.validateAccount = async () => {
++		if (block) {
++			block = false;
++			entered();
++			await gate;
++		}
++		return true;
++	};
++	f.advance();
++	f.feed.event(f.event(1, 0.25));
++	await waiting;
++	f.advance(2000);
++	const receivedAt = f.time();
++	f.feed.event(f.event(2, 0.4));
++	f.advance(45_000);
++	release();
++	await f.feed.settled();
++	const window = f.store.snapshot("b".repeat(64))[0];
++	expect(window?.usedPercent).toBe(40);
++	expect(window?.observedAt).toBe(receivedAt);
++	expect(window?.observedAt).not.toBe(f.time());
++});
+diff --git a/packages/host-service/src/chat-v3/nativeClaudeUsage.ts b/packages/host-service/src/chat-v3/nativeClaudeUsage.ts
+new file mode 100644
+index 000000000..266793c42
+--- /dev/null
++++ b/packages/host-service/src/chat-v3/nativeClaudeUsage.ts
+@@ -0,0 +1,135 @@
++import { randomUUID } from "node:crypto";
++import {
++	captureNativeClaudeUsageGeneration,
++	resolveNativeClaudeUsageScope,
++} from "../trpc/router/usage/claude";
++import {
++	ingestNativeClaudeBinding,
++	isNativeClaudeAccount,
++	type NativeClaudeAccount,
++	type NativeClaudeUsageDependencies,
++} from "../trpc/router/usage/native-claude-binding";
++import { nativeClaudeUsage } from "../trpc/router/usage/native-claude-usage";
++import { validateSessionAccount } from "../trpc/router/usage/session-account/session-account";
++
++const dependencies: NativeClaudeUsageDependencies = {
++	captureGeneration: captureNativeClaudeUsageGeneration,
++	resolveScope: resolveNativeClaudeUsageScope,
++	validateAccount: validateSessionAccount,
++	store: nativeClaudeUsage,
++};
++export function createNativeClaudeChatFeed(
++	deps = dependencies,
++	now = Date.now,
++) {
++	const launchId = randomUUID();
++	let launched: (NativeClaudeAccount & { generation: string }) | undefined;
++	let sessionId: string | undefined;
++	let disposed = false;
++	let pending = Promise.resolve();
++	let queued = 0;
++	const enqueue = (work: () => Promise<unknown>) => {
++		if (queued >= 64) return;
++		queued++;
++		pending = pending
++			.then(work)
++			.then(
++				() => {},
++				() => {},
++			)
++			.finally(() => {
++				queued--;
++			});
++	};
++	return {
++		async launched(account: NativeClaudeAccount | undefined): Promise<void> {
++			if (
++				disposed ||
++				!isNativeClaudeAccount(account) ||
++				!(await deps.validateAccount(account))
++			)
++				return;
++			const generation = await deps.captureGeneration(
++				account.selection,
++				account.directory,
++				account.identity,
++			);
++			if (!disposed && generation) launched = { ...account, generation };
++		},
++		session(id: string): void {
++			if (disposed || !launched || sessionId) return;
++			const receivedAt = now();
++			sessionId = id;
++			const account = launched;
++			enqueue(async () => {
++				const launch = { launchId, sessionId: id };
++				const current = () =>
++					!disposed && launched === account && sessionId === id;
++				if (
++					!current() ||
++					!deps.store.captureLaunch({
++						...launch,
++						generation: account.generation,
++					})
++				)
++					return;
++				// A restored rate-limit event at counter zero is only a baseline.
++				await ingestNativeClaudeBinding(
++					account,
++					launch,
++					{
++						source: "claude_sdk",
++						receivedAt,
++						responseCounter: 0,
++						payload: {
++							type: "rate_limit_event",
++							uuid: "native-baseline",
++							rate_limit_info: {},
++						},
++					},
++					current,
++					deps,
++				);
++			});
++		},
++		event(input: {
++			sessionId: string;
++			rateLimitInfo: unknown;
++			eventId?: string;
++			responseCounter: number;
++		}): void {
++			// Capture before the serial queue: proof work must not freshen this event.
++			const receivedAt = now();
++			if (disposed || !launched || input.sessionId !== sessionId) return;
++			const account = launched;
++			enqueue(async () => {
++				await ingestNativeClaudeBinding(
++					account,
++					{ launchId, sessionId: input.sessionId },
++					{
++						source: "claude_sdk",
++						receivedAt,
++						responseCounter: input.responseCounter,
++						payload: {
++							type: "rate_limit_event",
++							uuid: input.eventId ?? "native-rate-limit",
++							session_id: input.sessionId,
++							rate_limit_info: input.rateLimitInfo,
++						},
++					},
++					() =>
++						!disposed && launched === account && input.sessionId === sessionId,
++					deps,
++				);
++			});
++		},
++		settled(): Promise<void> {
++			return pending;
++		},
++		dispose(): void {
++			disposed = true;
++			launched = undefined;
++			sessionId = undefined;
++		},
++	};
++}
+diff --git a/packages/host-service/src/trpc/router/agents/agents.ts b/packages/host-service/src/trpc/router/agents/agents.ts
+index ff8f08ab3..3c3db7600 100644
+--- a/packages/host-service/src/trpc/router/agents/agents.ts
++++ b/packages/host-service/src/trpc/router/agents/agents.ts
+@@ -48,6 +48,7 @@ import { hasHarnessSession } from "../../../terminal-agents/harness-sessions";
+ import type { HostServiceContext } from "../../../types";
+ import { protectedProcedure, router } from "../../index";
+ import { resolveAttachmentPath } from "../attachments/storage";
++import { prepareNativeClaudeTerminalLaunch } from "../notifications/native-claude-usage";
+ import { createChatSession } from "../sessions/create-chat-session";
+ import { toTerminalSessionError } from "../terminal/errors";
+ import type { SessionAccount } from "../usage/session-account/session-account";
+@@ -547,6 +548,15 @@ async function runTerminalAgent(
+ 	const { fullCommand, label } = buildTerminalAgentLaunch(ctx.db, input);
+ 
+ 	const terminalId = input.terminalLaunch?.terminalId ?? crypto.randomUUID();
++	if (
++		process.env.SUPERSET_NATIVE_CLAUDE_USAGE === "1" &&
++		!input.resumeSessionId &&
++		!input.forkSessionId
++	) {
++		await prepareNativeClaudeTerminalLaunch(terminalId, input.account).catch(
++			() => false,
++		);
++	}
+ 	const result = await createTerminalSessionInternal({
+ 		terminalId,
+ 		workspaceId: input.workspaceId,
+diff --git a/packages/host-service/src/trpc/router/agents/launch-account.ts b/packages/host-service/src/trpc/router/agents/launch-account.ts
+index ab949c8f1..4e1090934 100644
+--- a/packages/host-service/src/trpc/router/agents/launch-account.ts
++++ b/packages/host-service/src/trpc/router/agents/launch-account.ts
+@@ -269,6 +269,8 @@ export function pinnedAccountCommandPrefix(
+ 			...env,
+ 			...pinnedAccountEnv(account),
+ 			SUPERSET_PINNED_ACCOUNT: variable,
++			SUPERSET_NATIVE_CLAUDE_USAGE:
++				process.env.SUPERSET_NATIVE_CLAUDE_USAGE === "1" ? "1" : "",
+ 		}).map(([key, value]) => `${key}=${value}`),
+ 	])} `;
+ }
+diff --git a/packages/host-service/src/trpc/router/notifications/native-claude-usage.test.ts b/packages/host-service/src/trpc/router/notifications/native-claude-usage.test.ts
+new file mode 100644
+index 000000000..cb3376755
+--- /dev/null
++++ b/packages/host-service/src/trpc/router/notifications/native-claude-usage.test.ts
+@@ -0,0 +1,178 @@
++import { expect, test } from "bun:test";
++import type { TerminalAgentBinding } from "../../../terminal-agents/types";
++import type { NativeClaudeUsageDependencies } from "../usage/native-claude-binding";
++import { createNativeClaudeUsageStore } from "../usage/native-claude-usage";
++import {
++	createNativeClaudeTerminalFeed,
++	matchesNativeClaudeHook,
++} from "./native-claude-usage";
++
++function fixture() {
++	let now = 1_800_000_000_000;
++	let generation = "a".repeat(64);
++	let scope: string | null = null;
++	const account = {
++		agent: "claude" as const,
++		credentialKind: "subscription" as const,
++		pinned: true as const,
++		identity: "e".repeat(64),
++		selection: "/fixture/profile",
++		directory: "/fixture/profile",
++	};
++	const identity = {
++		terminalId: "owned-terminal",
++		launchId: "owned-launch",
++		sessionId: "owned-session",
++	};
++	let binding: TerminalAgentBinding = {
++		...identity,
++		agentSessionId: identity.sessionId,
++		account,
++		workspaceId: "owned-workspace",
++		agentId: "claude",
++		startedAt: now,
++		lastEventAt: now,
++		lastEventType: "Attached",
++	};
++	const store = createNativeClaudeUsageStore({
++		persist: false,
++		now: () => now,
++	});
++	const deps: NativeClaudeUsageDependencies = {
++		store,
++		validateAccount: async () => true,
++		captureGeneration: async () => generation,
++		resolveScope: async (_a, _d, _i, expected) =>
++			expected === generation ? scope : null,
++	};
++	const feed = createNativeClaudeTerminalFeed(deps, () => now);
++	const frame = (counter: number) => ({
++		cost: { total_api_duration_ms: counter },
++		rate_limits: {
++			five_hour: { used_percentage: 25, resets_at: 1_800_000_300 },
++		},
++	});
++	return {
++		account,
++		identity,
++		feed,
++		store,
++		deps,
++		frame,
++		current: () => binding,
++		advance: (ms = 1000) => {
++			now += ms;
++		},
++		time: () => now,
++		warm: () => {
++			scope = "b".repeat(64);
++		},
++		rotate: () => {
++			generation = "c".repeat(64);
++		},
++		replace: (change: Partial<TerminalAgentBinding>) => {
++			binding = { ...binding, ...change };
++		},
++	};
++}
++test("prelaunch generation survives cold proof and promotes later replay at its original age", async () => {
++	const f = fixture();
++	expect(await f.feed.prepare(f.identity.terminalId, f.account)).toBe(true);
++	expect(f.feed.capture(f.identity, f.current)).toBe(true);
++	expect(await f.feed.ingest(f.identity, f.frame(0), f.current)).toBe(false);
++	f.advance();
++	await f.feed.ingest(f.identity, f.frame(1), f.current);
++	f.advance();
++	f.warm();
++	expect(await f.feed.ingest(f.identity, f.frame(1), f.current)).toBe(true);
++	expect(f.store.snapshot("b".repeat(64))[0]?.observedAt).toBe(
++		1_800_000_001_000,
++	);
++});
++test("unprepared, changed generation, ended and foreign sessions cannot bind", async () => {
++	const f = fixture();
++	expect(f.feed.capture(f.identity, f.current)).toBe(false);
++	await f.feed.prepare(f.identity.terminalId, f.account);
++	expect(
++		f.feed.capture({ ...f.identity, sessionId: "foreign" }, f.current),
++	).toBe(false);
++	expect(f.feed.capture(f.identity, f.current)).toBe(true);
++	f.warm();
++	f.rotate();
++	expect(await f.feed.ingest(f.identity, f.frame(1), f.current)).toBe(false);
++	f.replace({ endedAt: 1_800_000_002_000 });
++	expect(matchesNativeClaudeHook(f.current(), f.identity)).toBe(false);
++});
++test("a delayed hook cannot capture a credential rotated after prelaunch", async () => {
++	const f = fixture();
++	await f.feed.prepare(f.identity.terminalId, f.account);
++	f.rotate();
++	f.warm();
++	expect(f.feed.capture(f.identity, f.current)).toBe(true);
++	expect(await f.feed.ingest(f.identity, f.frame(0), f.current)).toBe(false);
++	expect(await f.feed.ingest(f.identity, f.frame(1), f.current)).toBe(false);
++	expect(f.store.snapshot("b".repeat(64))).toEqual([]);
++});
++
++test("background adoption never forwards predecessor samples or refreshes their age", async () => {
++	const f = fixture();
++	f.warm();
++	await f.feed.prepare(f.identity.terminalId, f.account);
++	f.feed.capture(f.identity, f.current);
++	await f.feed.ingest(f.identity, f.frame(0), f.current);
++	f.advance();
++	await f.feed.ingest(f.identity, f.frame(1), f.current);
++	const original = f.store.snapshot("b".repeat(64));
++	f.advance();
++	f.replace({ endedAt: 1_800_000_002_000, endReason: "resumed" });
++	expect(await f.feed.ingest(f.identity, f.frame(2), f.current)).toBe(false);
++	expect(f.store.snapshot("b".repeat(64))).toEqual(original);
++	f.replace({
++		terminalId: "successor-terminal",
++		endedAt: undefined,
++		endReason: undefined,
++		launchId: "successor-launch",
++	});
++	expect(await f.feed.ingest(f.identity, f.frame(2), f.current)).toBe(false);
++	expect(
++		await f.feed.ingest(
++			{
++				...f.identity,
++				terminalId: "successor-terminal",
++				launchId: "successor-launch",
++			},
++			f.frame(2),
++			f.current,
++		),
++	).toBe(false);
++	expect(f.store.snapshot("b".repeat(64))).toEqual(original);
++});
++
++test("terminal hook receipt precedes deferred account validation", async () => {
++	const f = fixture();
++	f.warm();
++	await f.feed.prepare(f.identity.terminalId, f.account);
++	f.feed.capture(f.identity, f.current);
++	await f.feed.ingest(f.identity, f.frame(0), f.current);
++	f.advance();
++	const receivedAt = f.time();
++	let release!: () => void;
++	let entered!: () => void;
++	const waiting = new Promise<void>((resolve) => {
++		entered = resolve;
++	});
++	const gate = new Promise<void>((resolve) => {
++		release = resolve;
++	});
++	f.deps.validateAccount = async () => {
++		entered();
++		await gate;
++		return true;
++	};
++	const pending = f.feed.ingest(f.identity, f.frame(1), f.current);
++	await waiting;
++	f.advance(45_000);
++	release();
++	expect(await pending).toBe(true);
++	expect(f.store.snapshot("b".repeat(64))[0]?.observedAt).toBe(receivedAt);
++});
+diff --git a/packages/host-service/src/trpc/router/notifications/native-claude-usage.ts b/packages/host-service/src/trpc/router/notifications/native-claude-usage.ts
+new file mode 100644
+index 000000000..468d14185
+--- /dev/null
++++ b/packages/host-service/src/trpc/router/notifications/native-claude-usage.ts
+@@ -0,0 +1,131 @@
++import type { TerminalAgentBinding } from "../../../terminal-agents/types";
++import {
++	captureNativeClaudeUsageGeneration,
++	resolveNativeClaudeUsageScope,
++} from "../usage/claude";
++import {
++	ingestNativeClaudeBinding,
++	isNativeClaudeAccount,
++	type NativeClaudeAccount,
++	type NativeClaudeUsageDependencies,
++} from "../usage/native-claude-binding";
++import { nativeClaudeUsage } from "../usage/native-claude-usage";
++import {
++	sameSessionAccountContext,
++	validateSessionAccount,
++} from "../usage/session-account/session-account";
++
++export interface NativeClaudeHookIdentity {
++	terminalId: string;
++	launchId: string;
++	sessionId: string;
++}
++const dependencies: NativeClaudeUsageDependencies = {
++	captureGeneration: captureNativeClaudeUsageGeneration,
++	resolveScope: resolveNativeClaudeUsageScope,
++	validateAccount: validateSessionAccount,
++	store: nativeClaudeUsage,
++};
++export function matchesNativeClaudeHook(
++	binding: TerminalAgentBinding | undefined,
++	input: NativeClaudeHookIdentity,
++): binding is TerminalAgentBinding {
++	return (
++		!!binding &&
++		binding.endedAt === undefined &&
++		!binding.accountInvalid &&
++		binding.agentId === "claude" &&
++		binding.terminalId === input.terminalId &&
++		binding.launchId === input.launchId &&
++		binding.agentSessionId === input.sessionId &&
++		binding.account?.pinned === true &&
++		!binding.account.conflict &&
++		binding.account.agent === "claude" &&
++		binding.account.credentialKind === "subscription"
++	);
++}
++export function createNativeClaudeTerminalFeed(
++	deps = dependencies,
++	now = Date.now,
++) {
++	const permits = new Map<
++		string,
++		{ account: NativeClaudeAccount; generation: string; at: number }
++	>();
++	return {
++		async prepare(
++			terminalId: string,
++			account: NativeClaudeAccount | undefined,
++		): Promise<boolean> {
++			if (
++				!isNativeClaudeAccount(account) ||
++				!(await deps.validateAccount(account))
++			)
++				return false;
++			const generation = await deps.captureGeneration(
++				account.selection,
++				account.directory,
++				account.identity,
++			);
++			if (!generation) return false;
++			const at = now();
++			for (const [id, value] of permits)
++				if (at - value.at > 300_000 || value.at > at) permits.delete(id);
++			while (permits.size >= 256)
++				permits.delete(permits.keys().next().value as string);
++			permits.set(terminalId, { account: { ...account }, generation, at });
++			return true;
++		},
++		capture(
++			identity: NativeClaudeHookIdentity,
++			current: () => TerminalAgentBinding | undefined,
++		): boolean {
++			const binding = current();
++			const permit = permits.get(identity.terminalId);
++			if (
++				!permit ||
++				now() < permit.at ||
++				now() - permit.at > 300_000 ||
++				!matchesNativeClaudeHook(binding, identity) ||
++				!sameSessionAccountContext(binding.account, permit.account)
++			)
++				return false;
++			const captured = deps.store.captureLaunch({
++				...identity,
++				generation: permit.generation,
++			});
++			if (captured) permits.delete(identity.terminalId);
++			return captured;
++		},
++		async ingest(
++			identity: NativeClaudeHookIdentity,
++			payload: unknown,
++			current: () => TerminalAgentBinding | undefined,
++		): Promise<boolean> {
++			// Receipt is captured before asynchronous account/proof validation.
++			const receivedAt = now();
++			const binding = current();
++			if (!matchesNativeClaudeHook(binding, identity) || !binding.account)
++				return false;
++			const account = binding.account;
++			const unchanged = () => {
++				const after = current();
++				return (
++					matchesNativeClaudeHook(after, identity) &&
++					sameSessionAccountContext(after.account, account)
++				);
++			};
++			return ingestNativeClaudeBinding(
++				account,
++				identity,
++				{ source: "claude_statusline", payload, receivedAt },
++				unchanged,
++				deps,
++			);
++		},
++	};
++}
++const feed = createNativeClaudeTerminalFeed();
++export const prepareNativeClaudeTerminalLaunch = feed.prepare;
++export const captureNativeClaudeLaunch = feed.capture;
++export const ingestNativeClaudeHook = feed.ingest;
+diff --git a/packages/host-service/src/trpc/router/notifications/notifications.ts b/packages/host-service/src/trpc/router/notifications/notifications.ts
+index 19194162d..2737dc0f9 100644
+--- a/packages/host-service/src/trpc/router/notifications/notifications.ts
++++ b/packages/host-service/src/trpc/router/notifications/notifications.ts
+@@ -14,6 +14,10 @@ import {
+ } from "../usage/session-account/session-account";
+ import { queueBackgroundSuccessorRefresh } from "./background-successor-adapter";
+ import { fanOutAgentLifecycle } from "./fan-out-agent-lifecycle";
++import {
++	captureNativeClaudeLaunch,
++	ingestNativeClaudeHook,
++} from "./native-claude-usage";
+ import { showDesktopNotification } from "./show-desktop-notification";
+ 
+ // Hook scripts emit "" for unset env vars; we coerce to undefined so the
+@@ -39,7 +43,28 @@ const subagentInput = z
+ 	})
+ 	.optional();
+ 
++const nativeClaudeUsageInput = z.object({
++	session_id: z.string().min(1).max(256),
++	cost: z.object({
++		total_api_duration_ms: z.number().finite().nonnegative().nullable(),
++	}),
++	rate_limits: z.object({
++		five_hour: z
++			.object({
++				used_percentage: z.number().finite().min(0).max(100),
++				resets_at: z.number().finite(),
++			})
++			.optional(),
++		seven_day: z
++			.object({
++				used_percentage: z.number().finite().min(0).max(100),
++				resets_at: z.number().finite(),
++			})
++			.optional(),
++	}),
++});
+ const hookInput = z.object({
++	nativeClaudeUsage: nativeClaudeUsageInput.optional(),
+ 	terminalId: z.string().optional(),
+ 	eventType: z.string().optional(),
+ 	agent: agentIdentityInput,
+@@ -96,6 +121,41 @@ export function createNotificationsRouter(
+ 		 * would leak it into every agent shell's env for zero practical gain.
+ 		 */
+ 		hook: publicProcedure.input(hookInput).mutation(async ({ ctx, input }) => {
++			if (input.nativeClaudeUsage) {
++				const terminalId = input.terminalId;
++				const sessionId = input.nativeClaudeUsage.session_id;
++				const launchId = trimOrUndefined(input.launchId);
++				if (
++					process.env.SUPERSET_NATIVE_CLAUDE_USAGE !== "1" ||
++					!terminalId ||
++					!launchId ||
++					input.subagent ||
++					input.agent?.agentId !== "claude" ||
++					input.agent.sessionId !== sessionId ||
++					ctx.terminalAgentStore.hasChat(terminalId) ||
++					!verifyAttributionToken(terminalId, input.attributionToken)
++				)
++					return { success: true, ignored: true as const };
++				const terminal = ctx.db.query.terminalSessions
++					.findFirst({
++						where: eq(terminalSessions.id, terminalId),
++						columns: { originWorkspaceId: true },
++					})
++					.sync();
++				const current = () => {
++					const binding = ctx.terminalAgentStore.getProvenance(terminalId);
++					return terminal?.originWorkspaceId &&
++						binding?.workspaceId === terminal.originWorkspaceId
++						? binding
++						: undefined;
++				};
++				const accepted = await ingestNativeClaudeHook(
++					{ terminalId, launchId, sessionId },
++					input.nativeClaudeUsage,
++					current,
++				).catch(() => false);
++				return { success: true, ignored: !accepted };
++			}
+ 			const subagentId = trimOrUndefined(input.subagent?.id);
+ 			const eventType = subagentId ? undefined : mapEventType(input.eventType);
+ 			if (!subagentId && !eventType) {
+@@ -322,6 +382,24 @@ export function createNotificationsRouter(
+ 				});
+ 			}
+ 
++			if (
++				process.env.SUPERSET_NATIVE_CLAUDE_USAGE === "1" &&
++				verifiedAttribution &&
++				eventType === "Attached" &&
++				agent?.agentId === "claude" &&
++				agent.sessionId &&
++				input.launchId
++			) {
++				captureNativeClaudeLaunch(
++					{
++						terminalId: input.terminalId,
++						launchId: input.launchId,
++						sessionId: agent.sessionId,
++					},
++					() =>
++						ctx.terminalAgentStore.getProvenance(input.terminalId as string),
++				);
++			}
+ 			const transcriptPath = trimOrUndefined(input.transcriptPath);
+ 			if (
+ 				agent?.sessionId &&
