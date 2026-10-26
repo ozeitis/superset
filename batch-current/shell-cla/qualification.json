@@ -1,0 +1,390 @@
+{
+  "preparedAt": "2026-10-26T02:02:50.536320+00:00",
+  "combined": "a37449416fe798d28edb02c1401a81b6f16406fd",
+  "upstream": "d962fd0f2d529d935cb2bd7fde9691f2e374a717",
+  "fullSuiteBase": "fbed750d4016f1b8cbcb6c19486dabb4981fbf86",
+  "additionalTestDelta": [
+    "packages/workspace-fs/src/watch-pathtypes-growth.test.ts"
+  ],
+  "branches": [
+    {
+      "number": 8399,
+      "branch": "fix/quota-refresh-ordering",
+      "old": "fcfecc400f588dbed7538e0b5ca2bd25951ffbd2",
+      "head": "0c6404ca1f6d65aee489a04011429f7300e1ef73",
+      "featureFiles": [
+        "apps/desktop/src/lib/trpc/routers/host-usage/index.ts",
+        "apps/desktop/src/lib/trpc/routers/index.ts",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/main/lib/host-usage/index.ts",
+        "apps/desktop/src/main/lib/host-usage/store.test.ts",
+        "apps/desktop/src/main/lib/host-usage/store.ts",
+        "apps/desktop/src/renderer/hooks/host-service/useHostUsageQuota/readUsageObservation.test.ts",
+        "apps/desktop/src/renderer/hooks/host-service/useHostUsageQuota/readUsageObservation.ts",
+        "apps/desktop/src/renderer/hooks/host-service/useHostUsageQuota/usage-observations.ts",
+        "apps/desktop/src/renderer/hooks/host-service/useHostUsageQuota/useHostUsageQuota.test.tsx",
+        "apps/desktop/src/renderer/hooks/host-service/useHostUsageQuota/useHostUsageQuota.ts",
+        "apps/desktop/src/renderer/hooks/host-service/useHostUsageQuota/utils/refreshUsageQuota/refreshUsageQuota.test.ts",
+        "apps/desktop/src/renderer/hooks/host-service/useHostUsageQuota/utils/refreshUsageQuota/refreshUsageQuota.ts",
+        "apps/desktop/src/shared/host-usage-observation.ts"
+      ],
+      "mergeBaseBefore": "e80bcf08c62f4c696c81227e6714603aff72b62e"
+    },
+    {
+      "number": 8401,
+      "branch": "feat/terminal-account-schema",
+      "old": "59ccb359d332d8a2ef2f0838a0ccfe5dbaf8eeb4",
+      "head": "e949900f38b05b5f8823791f6032c5df40d134b3",
+      "featureFiles": [
+        "packages/host-service/drizzle/0039_terminal_account_provenance.sql",
+        "packages/host-service/drizzle/meta/0039_snapshot.json",
+        "packages/host-service/drizzle/meta/_journal.json",
+        "packages/host-service/src/db/account-binding-migration.test.ts",
+        "packages/host-service/src/db/schema.ts"
+      ],
+      "mergeBaseBefore": "e80bcf08c62f4c696c81227e6714603aff72b62e"
+    },
+    {
+      "number": 8402,
+      "branch": "feat/native-chat-account-schema",
+      "old": "ac12d45d97bf8fb6032d96de0f0c4f8c7e452ac5",
+      "head": "97a743f42c98f3c39d626e1cf70fdb11cddb6540",
+      "featureFiles": [
+        "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/useConsumeAutomationRunLink/chatSessionTarget.test.ts",
+        "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/ChatPane/components/ChatHistoryPicker/utils/historyEntries.test.ts",
+        "packages/chat-runtime/src/db/account-migration.test.ts",
+        "packages/chat-runtime/src/db/drizzle/0001_account_chat_launch_context.sql",
+        "packages/chat-runtime/src/db/drizzle/meta/0001_snapshot.json",
+        "packages/chat-runtime/src/db/drizzle/meta/_journal.json",
+        "packages/chat-runtime/src/db/schema/schema.ts"
+      ],
+      "mergeBaseBefore": "e80bcf08c62f4c696c81227e6714603aff72b62e"
+    },
+    {
+      "number": 8459,
+      "branch": "feat/saved-conversation-schema",
+      "old": "2829d6628a8c48960cd82630edbb7013dc85aaa2",
+      "head": "1d0a81e9b551e9561a7489cac067ab134a48a759",
+      "featureFiles": [
+        "packages/host-service/drizzle/0039_terminal_account_provenance.sql",
+        "packages/host-service/drizzle/0040_saved_native_conversations.sql",
+        "packages/host-service/drizzle/meta/0039_snapshot.json",
+        "packages/host-service/drizzle/meta/0040_snapshot.json",
+        "packages/host-service/drizzle/meta/_journal.json",
+        "packages/host-service/src/db/account-binding-migration.test.ts",
+        "packages/host-service/src/db/saved-conversations-migration.test.ts",
+        "packages/host-service/src/db/schema.ts"
+      ],
+      "mergeBaseBefore": "e80bcf08c62f4c696c81227e6714603aff72b62e"
+    },
+    {
+      "number": 8501,
+      "branch": "test/watcher-created-path-readiness",
+      "old": "7b4d7d837c876085338d7739bc543835b37824d6",
+      "head": "ed96f741dfad41bfff1e5d2339a1550a4bc2c0e6",
+      "featureFiles": [
+        "packages/workspace-fs/src/watch-pathtypes-growth.test.ts"
+      ],
+      "mergeBaseBefore": "e80bcf08c62f4c696c81227e6714603aff72b62e",
+      "additionalFixFiles": [
+        "packages/workspace-fs/src/watch-pathtypes-growth.test.ts"
+      ],
+      "fixRationale": "Native callbacks may label a tracked new path update and duplicate labels do not prove distinct paths. Every real-backend phase now waits for its exact paths and asserts inventory membership/removal; deadlines and scripted LRU emitter stay unchanged."
+    }
+  ],
+  "testOnly": {
+    "branch": "test/clean-shell-pipe-lifecycle",
+    "head": "9ceb4afbd1d1f2060df7a5ca731e6a2e27b890fa",
+    "files": [
+      "packages/host-service/package.json",
+      "packages/host-service/src/terminal/clean-shell-env.node-test.ts",
+      "packages/host-service/src/terminal/clean-shell-env.test.ts"
+    ]
+  },
+  "exactHeadChecks": [
+    {
+      "pr": 8399,
+      "head": "0c6404ca1f6d65aee489a04011429f7300e1ef73",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/main/lib/host-usage",
+        "src/renderer/hooks/host-service/useHostUsageQuota"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8399,
+      "head": "0c6404ca1f6d65aee489a04011429f7300e1ef73",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8399,
+      "head": "0c6404ca1f6d65aee489a04011429f7300e1ef73",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8401,
+      "head": "e949900f38b05b5f8823791f6032c5df40d134b3",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/db/account-binding-migration.test.ts"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8401,
+      "head": "e949900f38b05b5f8823791f6032c5df40d134b3",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8401,
+      "head": "e949900f38b05b5f8823791f6032c5df40d134b3",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8402,
+      "head": "97a743f42c98f3c39d626e1cf70fdb11cddb6540",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/db/account-migration.test.ts"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8402,
+      "head": "97a743f42c98f3c39d626e1cf70fdb11cddb6540",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8402,
+      "head": "97a743f42c98f3c39d626e1cf70fdb11cddb6540",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/useConsumeAutomationRunLink/chatSessionTarget.test.ts",
+        "src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/ChatPane/components/ChatHistoryPicker/utils/historyEntries.test.ts"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8402,
+      "head": "97a743f42c98f3c39d626e1cf70fdb11cddb6540",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8402,
+      "head": "97a743f42c98f3c39d626e1cf70fdb11cddb6540",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8459,
+      "head": "1d0a81e9b551e9561a7489cac067ab134a48a759",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/db/account-binding-migration.test.ts",
+        "src/db/saved-conversations-migration.test.ts"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8459,
+      "head": "1d0a81e9b551e9561a7489cac067ab134a48a759",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8459,
+      "head": "1d0a81e9b551e9561a7489cac067ab134a48a759",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8501,
+      "head": "ed96f741dfad41bfff1e5d2339a1550a4bc2c0e6",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8501,
+      "head": "ed96f741dfad41bfff1e5d2339a1550a4bc2c0e6",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": 8501,
+      "head": "ed96f741dfad41bfff1e5d2339a1550a4bc2c0e6",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": "shell",
+      "head": "9ceb4afbd1d1f2060df7a5ca731e6a2e27b890fa",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/terminal/clean-shell-env.test.ts"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": "shell",
+      "head": "9ceb4afbd1d1f2060df7a5ca731e6a2e27b890fa",
+      "command": [
+        "node",
+        "--import",
+        "tsx",
+        "--test",
+        "src/terminal/clean-shell-env.node-test.ts"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": "shell",
+      "head": "9ceb4afbd1d1f2060df7a5ca731e6a2e27b890fa",
+      "command": [
+        "env",
+        "./node_modules/.bin/turbo",
+        "test:integration:terminal",
+        "--filter=@superset/host-service",
+        "--concurrency=1",
+        "--env-mode=loose"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": "shell",
+      "head": "9ceb4afbd1d1f2060df7a5ca731e6a2e27b890fa",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0
+    },
+    {
+      "pr": "shell",
+      "head": "9ceb4afbd1d1f2060df7a5ca731e6a2e27b890fa",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "combinedChecks": [
+    {
+      "name": "shell-full-serial-tests",
+      "head": "fbed750d4016f1b8cbcb6c19486dabb4981fbf86",
+      "exitCode": 0
+    },
+    {
+      "name": "shell-full-types",
+      "head": "fbed750d4016f1b8cbcb6c19486dabb4981fbf86",
+      "exitCode": 0
+    },
+    {
+      "name": "shell-full-native",
+      "head": "fbed750d4016f1b8cbcb6c19486dabb4981fbf86",
+      "exitCode": 0
+    },
+    {
+      "name": "shell-full-i18n",
+      "head": "fbed750d4016f1b8cbcb6c19486dabb4981fbf86",
+      "exitCode": 0
+    },
+    {
+      "name": "shell-full-migrations",
+      "head": "fbed750d4016f1b8cbcb6c19486dabb4981fbf86",
+      "exitCode": 0
+    },
+    {
+      "name": "shell-full-lint",
+      "head": "fbed750d4016f1b8cbcb6c19486dabb4981fbf86",
+      "exitCode": 0
+    }
+  ],
+  "runtimes": {
+    "Bun": "1.4.3",
+    "CI-compatible shell test": "Node22.23.4",
+    "native addon suite": "Node24.22.1 (preserved ABI137 store)"
+  },
+  "mutationProof": {
+    "unmodified": "pass",
+    "stdout cleanup omitted": "expected assertion failure",
+    "stderr cleanup omitted": "expected assertion failure"
+  },
+  "qualificationLimit": "An initial combined concurrent run also timed out in the unchanged upstream CLI process-identity test. The original failure is preserved privately. The subsequent serialized run uses the unchanged five-second test deadline; load causation is not proven. No retries or timeout increases were added.",
+  "production": "No installed app, provider, chat, server, real profile or database action.",
+  "counts": {
+    "Bun": 17630,
+    "nativePass": 61,
+    "nativeSkip": 2,
+    "exactHeadChecks": 22
+  }
+}
