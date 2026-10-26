@@ -1,0 +1,149 @@
+{
+  "kind": "synthetic hidden Electron controller/preload/renderer verification",
+  "capturedSource": "250710039a05ecfec47f4c26d0740194c7e99a29",
+  "qualifiedSource": "3eb5b85c193bd2db56b4a00320b3c7bde32020d0",
+  "floatingPRHead": "3212a4daeb3283b1286d9e4ab6756c59ec1e0e20",
+  "exactUIBlobMapping": [
+    {
+      "path": "apps/desktop/src/main/lib/usage-widget/index.ts",
+      "sha256": "24208a37a0ef22c8042607daa9f79ae4070548391853d8311261b579f3a7eff2",
+      "combinedSourceMatches": true,
+      "floatingPRMatches": true
+    },
+    {
+      "path": "apps/desktop/src/main/lib/usage-widget/appearance.ts",
+      "sha256": "8f891afd67cce85897f22bd78620d8c6034a34cde66b9d4ebac0bb18d518df28",
+      "combinedSourceMatches": true,
+      "floatingPRMatches": true
+    },
+    {
+      "path": "apps/desktop/src/preload/usage-widget.ts",
+      "sha256": "175d49aebe2d3a2117ec58d71bd9d3bb7800cc881d70cf966060cde701d56b24",
+      "combinedSourceMatches": true,
+      "floatingPRMatches": true
+    },
+    {
+      "path": "apps/desktop/src/renderer/usage-widget/UsagePanel.tsx",
+      "sha256": "03c4892a8683aca4f7fa4b65e51e7f3af66acbc78785133ebf1d9a7407259d7e",
+      "combinedSourceMatches": true,
+      "floatingPRMatches": true
+    },
+    {
+      "path": "apps/desktop/src/renderer/usage-widget/components/AccountRow/AccountRow.tsx",
+      "sha256": "dfe211b39a0b12163dfde34f2ba3a2c633383505fd3f654f2b0195b7898f80e9",
+      "combinedSourceMatches": true,
+      "floatingPRMatches": true
+    },
+    {
+      "path": "apps/desktop/src/shared/usage-widget/appearance-identity.ts",
+      "sha256": "968921ab6f27d2f60a152b3060af2056f38f2a16ebe15a62c5a4a4194fb4f325",
+      "combinedSourceMatches": true,
+      "floatingPRMatches": true
+    },
+    {
+      "path": "apps/desktop/vite/helpers.ts",
+      "sha256": "87a6c3a8869bd6704d6688435f42f159c2ffa9474bf26d7743ac6c0f576c5303",
+      "combinedSourceMatches": true,
+      "floatingPRMatches": true
+    },
+    {
+      "path": "apps/desktop/vite/usage-widget-csp.ts",
+      "sha256": "f9b33a6d7106b245e63a0cfff20bf5d67e4021919f5cdbaf4f08afe6d8361c6f",
+      "combinedSourceMatches": true,
+      "floatingPRMatches": true
+    }
+  ],
+  "checks": {
+    "controlGating": [
+      {
+        "label": "Verified Claude",
+        "colorControls": 1,
+        "visibilityControls": 1
+      },
+      {
+        "label": "Unverified Grok",
+        "colorControls": 0,
+        "visibilityControls": 1
+      },
+      {
+        "label": "Unverified Antigravity",
+        "colorControls": 0,
+        "visibilityControls": 1
+      }
+    ],
+    "unverifiedWritesRefused": true,
+    "outage": {
+      "offline": true,
+      "retainedExactWindow": true,
+      "retainedObservationDate": true,
+      "retainedColor": true,
+      "allAccountsRetained": true
+    },
+    "onlineRecovery": true,
+    "allWindowsHidden": true,
+    "blockedExternalRequests": 0,
+    "rendererErrors": 0
+  },
+  "assets": [
+    {
+      "bytes": 98030,
+      "width": 784,
+      "height": 1096,
+      "name": "current-normal-menu.png",
+      "sha256": "1cb754c76a90922d8fb230d944a64029879383bb9a8cff21eae275a1907dbb43"
+    },
+    {
+      "bytes": 109081,
+      "width": 784,
+      "height": 1096,
+      "name": "current-verified-appearance-controls.png",
+      "sha256": "5bf194a0ce30f1dfdbb68bab4ad642718dc4ba98fb4389a9c713488e67c8c30f"
+    },
+    {
+      "bytes": 103504,
+      "width": 784,
+      "height": 1096,
+      "name": "current-outage-retained-readings.png",
+      "sha256": "b7476aa382da3ee6e480866d481c9d2e5fe3c7a99d813dd69179fdb5b9b275e9"
+    }
+  ],
+  "limits": [
+    "Synthetic account/host/auth/database boundary; no provider authentication replay",
+    "Actual canonical controller/preload/renderer in hidden Electron; no production app focus",
+    "Three current-source views; old published images are supplemental, not a new before reproduction"
+  ],
+  "vite": {
+    "kind": "actual-vite-transform-and-hmr-loopback-smoke",
+    "head": "250710039a05ecfec47f4c26d0740194c7e99a29",
+    "dirty": [],
+    "source": {
+      "apps/desktop/vite/helpers.ts": "87a6c3a8869bd6704d6688435f42f159c2ffa9474bf26d7743ac6c0f576c5303",
+      "apps/desktop/vite/usage-widget-csp.ts": "f9b33a6d7106b245e63a0cfff20bf5d67e4021919f5cdbaf4f08afe6d8361c6f",
+      "apps/desktop/src/renderer/usage-widget.html": "8f639a8ef0272a3ce1644d115713dc3c4286b7cfb7aaca3615ec35297dd85b06"
+    },
+    "canonicalCleanHeadProof": true,
+    "browserExecuted": false,
+    "startedAt": "2026-10-26T00:38:08.714Z",
+    "passed": true,
+    "checks": {
+      "loopbackOnly": true,
+      "actualReactPreambleHasExactCspHash": true,
+      "noUnsafeScriptAllowance": true,
+      "exactHmrOrigin": true,
+      "actualJsxModuleTransformed": true,
+      "hmrConnected": true,
+      "hmrFullReloadDelivered": true,
+      "canonicalHtmlUnmodified": true
+    },
+    "versions": {
+      "node": "24.22.1",
+      "vite": "7.3.5",
+      "reactPlugin": "5.2.0"
+    },
+    "cleanup": {
+      "serverClosed": true,
+      "ownedRuntimeRemoved": true
+    },
+    "finishedAt": "2026-10-26T00:38:09.102Z"
+  }
+}

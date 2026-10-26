@@ -1,0 +1,80 @@
+{
+  "originalFailure": {
+    "log": "outputs/pr-status-current/batch/review-complete-native.log",
+    "logSHA256": "dfc41c3445d15d181ebbd711a4be8262c163abcb6effd03b43c5a75622de08a8",
+    "runtime": "Node v24.21.0 darwin arm64",
+    "addon": "better-sqlite3 12.11.1",
+    "symbol": "Statement::~Statement -> node::RemoveEnvironmentCleanupHook -> CHECK_NOT_NULL(env), from V8 first-pass weak GC callbacks",
+    "testFile": "packages/host-service/src/terminal/terminal.send-snapshot.node-test.ts",
+    "fileElapsedMs": 37839.657042,
+    "testSummary": {
+      "passed": 49,
+      "failedFiles": 1,
+      "skipped": 2
+    },
+    "precedingEBADF": "Observed PTY write EBADF immediately beforehand; causation of the native assertion is not established. Preserve both facts."
+  },
+  "sourceEquality": {
+    "earlierPassingCommit": "250710039a05ecfec47f4c26d0740194c7e99a29",
+    "finalCommit": "3eb5b85c193bd2db56b4a00320b3c7bde32020d0",
+    "testBlobBoth": "5f8219a556e1a4c09bb840f5bfec2068464f5c2f",
+    "terminalDbAndHostPackageDiff": "",
+    "meaning": "No changes in this scoped source/package set. This supports an unchanged lifecycle/runtime trigger; it alone cannot prove the complete branch has no defect."
+  },
+  "primarySources": [
+    {
+      "url": "https://github.com/nodejs/node/issues/65446",
+      "relevance": "Exact upstream Node24 ObjectWrap missing cleanup-registry regression; Darwin arm64 and env-null assertion during GC."
+    },
+    {
+      "url": "https://github.com/nodejs/node/issues/65262",
+      "relevance": "Related issue; the page contains the Node24 diagonal header/runtime reproduction. Use issue65446 as the stable main reference; comment-specific URL not relied on."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/v24.21.0/src/node_object_wrap.h",
+      "relevance": "ObjectWrap destructor removes cleanup hook during WeakCallback deletion."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/v24.21.0/src/api/hooks.cc",
+      "relevance": "RemoveEnvironmentCleanupHook requires Environment::GetCurrent(isolate) non-null."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/v24.22.1/src/api/hooks.cc",
+      "relevance": "Registry permits removal with no current context during GC; includes teardown use-after-free fix."
+    },
+    {
+      "url": "https://nodejs.org/en/blog/release/v24.22.0",
+      "relevance": "Official release containing reviewed cleanup-hook backports; actual241-to242 source comparison is the precise proof."
+    },
+    {
+      "url": "https://github.com/WiseLibs/better-sqlite3/blob/master/docs/api.md",
+      "relevance": "Statement finalization is documented to occur during garbage collection or database close. No unsupported blanket claim that all12.x/Node24 combinations fail."
+    }
+  ],
+  "failedRuntime": {
+    "version": "v24.21.0",
+    "modules": "137",
+    "arch": "arm64",
+    "platform": "darwin"
+  },
+  "successfulRuntime": {
+    "version": "v24.22.1",
+    "modules": "137",
+    "arch": "arm64",
+    "platform": "darwin"
+  },
+  "addonABI": 137,
+  "diagnostic": {
+    "receipt": "review-complete-native-node24.22",
+    "passed": 60,
+    "failed": 0,
+    "skipped": 2,
+    "sourceChanges": false,
+    "dependencyChanges": false,
+    "rebuiltAddons": false
+  },
+  "limits": [
+    "The comparison is consistent with the documented Node cleanup-hook defect; no minimal local runtime reproducer is claimed.",
+    "This test-interpreter selection does not change the application runtime or qualify every Electron lifecycle."
+  ]
+}

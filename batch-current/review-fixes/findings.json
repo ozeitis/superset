@@ -1,0 +1,368 @@
+{
+  "inlineFindings": [
+    {
+      "pr": 8399,
+      "url": "https://github.com/superset-sh/superset/pull/8399#discussion_r4264540804",
+      "path": "apps/desktop/src/renderer/hooks/host-service/useHostUsageQuota/utils/refreshUsageQuota/refreshUsageQuota.test.ts",
+      "disposition": "already fixed",
+      "owningPR": 8399,
+      "reason": "Existing cancellation-await race test retains the second generation check."
+    },
+    {
+      "pr": 8400,
+      "url": "https://github.com/superset-sh/superset/pull/8400#discussion_r4372892336",
+      "path": "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/ChatSession/components/Composer/Composer.tsx",
+      "disposition": "fixed",
+      "owningPR": 8400,
+      "reason": "Negotiated v1 child steering uses the acknowledgement RPC; injected and startedNewTurn return promptly, promptRequired falls back once. Attachment, identity, close and Stop races cannot submit stale work."
+    },
+    {
+      "pr": 8460,
+      "url": "https://github.com/superset-sh/superset/pull/8460#discussion_r4265215489",
+      "path": "packages/host-service/src/trpc/router/agents/launch-account.ts",
+      "disposition": "already fixed",
+      "owningPR": 8460,
+      "reason": "Disabled agent-hook settings remain checked before any account hook preparation."
+    },
+    {
+      "pr": 8460,
+      "url": "https://github.com/superset-sh/superset/pull/8460#discussion_r4372877375",
+      "path": "apps/desktop/src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AccountTerminalDialog/AccountTerminalDialog.tsx",
+      "disposition": "fixed",
+      "owningPR": 8460,
+      "reason": "Account picker refresh uses the shared forced quota refresh, refetches account metadata and keeps its busy state until both settle."
+    },
+    {
+      "pr": 8460,
+      "url": "https://github.com/superset-sh/superset/pull/8460#discussion_r4372877381",
+      "path": "packages/host-service/src/app.ts",
+      "disposition": "fixed",
+      "owningPR": 8460,
+      "reason": "Unsafe attribution storage selects an in-memory authority scoped to the host directory; it never rotates an unsafe stored key or trusts another host authority."
+    },
+    {
+      "pr": 8461,
+      "url": "https://github.com/superset-sh/superset/pull/8461#discussion_r4265215904",
+      "path": "packages/host-service/src/trpc/router/agents/launch-account.ts",
+      "disposition": "already fixed",
+      "owningPR": 8461,
+      "reason": "Inherited hook preparation honors disabled integrations."
+    },
+    {
+      "pr": 8461,
+      "url": "https://github.com/superset-sh/superset/pull/8461#discussion_r4372890489",
+      "path": "packages/host-service/src/trpc/router/terminal-agents/background-reconnect-adapter.ts",
+      "disposition": "fixed",
+      "owningPR": 8461,
+      "reason": "Unsupported ordinary custom-argument/API-key/unpinned launches return no background discovery candidate; actual pending attachment proof failures still refuse."
+    },
+    {
+      "pr": 8463,
+      "url": "https://github.com/superset-sh/superset/pull/8463#discussion_r4265247732",
+      "path": "packages/host-service/src/trpc/router/saved-conversations/saved-conversations.ts",
+      "disposition": "already fixed",
+      "owningPR": 8463,
+      "reason": "The saved-conversation reader resolves the supplied database path."
+    },
+    {
+      "pr": 8463,
+      "url": "https://github.com/superset-sh/superset/pull/8463#discussion_r4265247750",
+      "path": "packages/host-service/src/trpc/router/terminal-agents/resume-account.ts",
+      "disposition": "already fixed",
+      "owningPR": 8463,
+      "reason": "Recovery event/state writes are transactional; a failed event write rolls back the switch."
+    },
+    {
+      "pr": 8464,
+      "url": "https://github.com/superset-sh/superset/pull/8464#discussion_r4372880333",
+      "path": "packages/host-service/src/trpc/router/usage/claude.ts",
+      "disposition": "fixed",
+      "owningPR": 8464,
+      "reason": "Unavailable quota uses a strict public-field projection; no runtime credential fields are spread into the result."
+    },
+    {
+      "pr": 8464,
+      "url": "https://github.com/superset-sh/superset/pull/8464#discussion_r4372880341",
+      "path": "packages/host-service/src/trpc/router/usage/codex-quota-config.node-test.ts",
+      "disposition": "fixed",
+      "owningPR": 8464,
+      "reason": "The Node-only Codex quota suite is registered in the existing terminal integration task executed by CI."
+    },
+    {
+      "pr": 8883,
+      "url": "https://github.com/superset-sh/superset/pull/8883#discussion_r4372857970",
+      "path": "packages/local-db/src/schema/usage-widget-appearances.test.ts",
+      "disposition": "fixed",
+      "owningPR": 8883,
+      "reason": "The migration test is Node-only and registered through the local-db test script and Turbo."
+    },
+    {
+      "pr": 8883,
+      "url": "https://github.com/superset-sh/superset/pull/8883#discussion_r4372857974",
+      "path": "packages/local-db/src/schema/usage-widget-appearances.test.ts",
+      "disposition": "fixed",
+      "owningPR": 8883,
+      "reason": "Fixture setup applies only migrations before 0060, then the migration under test; later migrations cannot run first."
+    },
+    {
+      "pr": 8884,
+      "url": "https://github.com/superset-sh/superset/pull/8884#discussion_r4372866196",
+      "path": "apps/desktop/src/renderer/routes/_authenticated/settings/usage/components/UsageView/UsageView.tsx",
+      "disposition": "fixed",
+      "owningPR": 8884,
+      "reason": "Dashboard quota and wallet readers receive the same transport-offline state as the widget. Original dates remain visible and historical."
+    },
+    {
+      "pr": 8884,
+      "url": "https://github.com/superset-sh/superset/pull/8884#discussion_r4372866205",
+      "path": "packages/host-service/src/trpc/router/usage/claude-subscription.ts",
+      "disposition": "fixed",
+      "owningPR": 8464,
+      "reason": "The original deadline bounds response plus JSON decoding. Optional profile, wallet and history work cannot erase admitted quota or extend the deadline. Late explicit auth denial revokes proof immediately. Pending history is isolated per hashed credential and bounded."
+    },
+    {
+      "pr": 8884,
+      "url": "https://github.com/superset-sh/superset/pull/8884#discussion_r4372866211",
+      "path": "apps/desktop/src/renderer/routes/_authenticated/settings/appearance/components/AppearanceSettings/components/UsageWidgetSection/components/WidgetAccountAppearance/WidgetAccountAppearance.tsx",
+      "disposition": "fixed",
+      "owningPR": 8884,
+      "reason": "Main persistence, settings, dashboard and widget share the verified provider identity gate. Unsupported identities remain visible/hideable without offering a rejected color save."
+    },
+    {
+      "pr": 8888,
+      "url": "https://github.com/superset-sh/superset/pull/8888#discussion_r4373042977",
+      "path": "packages/host-service/src/trpc/router/terminal-agents/background-reconnect-adapter.ts",
+      "disposition": "duplicate fixed in prerequisite",
+      "owningPR": 8461,
+      "reason": "Same ordinary-resume scope issue as r4372890489; #8888 inherits its tested fix."
+    },
+    {
+      "pr": 8888,
+      "url": "https://github.com/superset-sh/superset/pull/8888#discussion_r4373042981",
+      "path": "packages/host-service/src/trpc/router/terminal-agents/background-reconnect.ts",
+      "disposition": "fixed",
+      "owningPR": 8461,
+      "reason": "A failed background attachment reservation is released only after exact owned-terminal exit and daemon non-liveness are proven, with unchanged source and no successor binding. Its dedicated shell exits when the real attach client ends; live or ambiguous shells stay protected."
+    }
+  ],
+  "reviewBodyNotes": [
+    {
+      "id": "8f823c468799db2f756803ba",
+      "path": "packages/host-service/src/trpc/router/usage/profiles.ts",
+      "heading": "Raise the strict Keychain timeout above 750 ms, or treat a timeout as a retryable read.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "unverified; no speculative timeout change",
+      "reason": "A long or interactive Keychain read can fail the strict capture, but no actual 750 ms timeout was established. Apple documents interaction requirements, not a recommended latency bound. Raising a per-command timeout or retrying inside the shared 2 s capture can consume its deadline and cannot guarantee prompt completion. Preserve strict refusal to use unverified credentials; no permission/identity fallback was weakened."
+    },
+    {
+      "id": "2dc2750a7133eafad3d341be",
+      "path": "apps/desktop/src/renderer/usage-widget.html",
+      "heading": "Allow Vite development support in the usage widget CSP.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "fixed",
+      "reason": "Development-only post-transform CSP hashes the actual React preamble and permits only the exact loopback HMR origin. Packaged HTML policy is byte-identical. Actual Vite/React transform and WebSocket reload smoke passed."
+    },
+    {
+      "id": "1874a6145c2afa18a6913391",
+      "path": "packages/i18n/locales/cs/messages.po",
+      "heading": "Add the Czech `few` plural form to the reset-count messages.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "fixed",
+      "reason": "Corrected the reviewed wording without changing message IDs."
+    },
+    {
+      "id": "84bfbe62a5a3da406c633214",
+      "path": "packages/host-service/src/trpc/router/usage/quota-widget-metadata.ts",
+      "heading": "Look up `globalThis.fetch` when a request is made, not at module load.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "fixed",
+      "reason": "Lazy request-time global fetch resolution."
+    },
+    {
+      "id": "19cde85fb54985295818edab",
+      "path": "packages/i18n/locales/de/messages.po",
+      "heading": "Correct the German word order.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "fixed",
+      "reason": "Corrected the reviewed wording without changing message IDs."
+    },
+    {
+      "id": "12045de8f70b7bc561845e0c",
+      "path": "packages/i18n/locales/de/messages.po",
+      "heading": "Use the screen-edge term instead of “Seitenleiste.”",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "clarified-edge-display; physical-cutout proposal rejected",
+      "reason": "This software feature is a floating right-edge panel, not a physical camera cutout. Translation now names the screen-edge panel explicitly."
+    },
+    {
+      "id": "8e7f3a00144b77f135939b76",
+      "path": "packages/i18n/locales/es/messages.po",
+      "heading": "Translate “notch” as the screen notch.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "clarified-edge-display; physical-cutout proposal rejected",
+      "reason": "This software feature is a floating right-edge panel, not a physical camera cutout. Translation now names the screen-edge panel explicitly."
+    },
+    {
+      "id": "990007c955a620eb8bcacfda",
+      "path": "packages/i18n/locales/fr/messages.po",
+      "heading": "Name the screen-edge display, not the sidebar.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "clarified-edge-display; physical-cutout proposal rejected",
+      "reason": "This software feature is a floating right-edge panel, not a physical camera cutout. Translation now names the screen-edge panel explicitly."
+    },
+    {
+      "id": "6e92148f6d635c3bb292f31a",
+      "path": "packages/i18n/locales/id/messages.po",
+      "heading": "Preserve the screen-notch meaning.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "clarified-edge-display; physical-cutout proposal rejected",
+      "reason": "This software feature is a floating right-edge panel, not a physical camera cutout. Translation now names the screen-edge panel explicitly."
+    },
+    {
+      "id": "8741d364e01760708bfa367b",
+      "path": "packages/i18n/locales/it/messages.po",
+      "heading": "Translate “notch” as the screen notch, not a side panel.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "clarified-edge-display; physical-cutout proposal rejected",
+      "reason": "This software feature is a floating right-edge panel, not a physical camera cutout. Translation now names the screen-edge panel explicitly."
+    },
+    {
+      "id": "f8e9532d83776722e5791cfb",
+      "path": "packages/i18n/locales/ja/messages.po",
+      "heading": "Translate “quotas” as usage limits.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "fixed",
+      "reason": "Corrected the reviewed wording without changing message IDs."
+    },
+    {
+      "id": "842585584a90ed0ea9b72931",
+      "path": "packages/i18n/locales/ja/messages.po",
+      "heading": "Translate “notch” as “ノッチ.”",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "clarified-edge-display; physical-cutout proposal rejected",
+      "reason": "This software feature is a floating right-edge panel, not a physical camera cutout. Translation now names the screen-edge panel explicitly."
+    },
+    {
+      "id": "ce8a1cbe0d3502b43ad9f9de",
+      "path": "packages/i18n/locales/ko/messages.po",
+      "heading": "Translate “notch” as the screen notch.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "clarified-edge-display; physical-cutout proposal rejected",
+      "reason": "This software feature is a floating right-edge panel, not a physical camera cutout. Translation now names the screen-edge panel explicitly."
+    },
+    {
+      "id": "67cdacf45cafab993aa2e615",
+      "path": "packages/i18n/locales/nl/messages.po",
+      "heading": "Translate “notch” as the screen notch.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "clarified-edge-display; physical-cutout proposal rejected",
+      "reason": "This software feature is a floating right-edge panel, not a physical camera cutout. Translation now names the screen-edge panel explicitly."
+    },
+    {
+      "id": "c26670eb02d40694c6807ad0",
+      "path": "packages/i18n/locales/pl/messages.po",
+      "heading": "Add the Polish `few` form to both reset labels.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "fixed",
+      "reason": "Corrected the reviewed wording without changing message IDs."
+    },
+    {
+      "id": "c0e491fe69e10a902550ad10",
+      "path": "packages/i18n/locales/pt-BR/messages.po",
+      "heading": "Name the notch display, not a side tab.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "clarified-edge-display; physical-cutout proposal rejected",
+      "reason": "This software feature is a floating right-edge panel, not a physical camera cutout. Translation now names the screen-edge panel explicitly."
+    },
+    {
+      "id": "42361b9457077f15620e62cb",
+      "path": "packages/i18n/locales/pt-BR/messages.po",
+      "heading": "Keep both “not live” variants semantically consistent.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "fixed",
+      "reason": "Corrected the reviewed wording without changing message IDs."
+    },
+    {
+      "id": "6428636af2ff0fdc12e20992",
+      "path": "packages/i18n/locales/ru/messages.po",
+      "heading": "Add Russian `few` and `many` forms.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "fixed",
+      "reason": "Corrected the reviewed wording without changing message IDs."
+    },
+    {
+      "id": "476c46cc8856ab354c3bbf88",
+      "path": "packages/i18n/locales/ru/messages.po",
+      "heading": "Translate `notch` as the screen-edge display.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "clarified-edge-display; physical-cutout proposal rejected",
+      "reason": "This software feature is a floating right-edge panel, not a physical camera cutout. Translation now names the screen-edge panel explicitly."
+    },
+    {
+      "id": "743f3c90a4048b803630d086",
+      "path": "packages/i18n/locales/tr/messages.po",
+      "heading": "Rephrase the next-expiry label.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "fixed",
+      "reason": "Corrected the reviewed wording without changing message IDs."
+    },
+    {
+      "id": "cb2ecb31de8597e44378c44a",
+      "path": "packages/i18n/locales/tr/messages.po",
+      "heading": "Make the reset-time label natural in Turkish.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "fixed",
+      "reason": "Corrected the reviewed wording without changing message IDs."
+    },
+    {
+      "id": "0fe5d831af65ac709f424b65",
+      "path": "packages/i18n/locales/tr/messages.po",
+      "heading": "Translate “notch” as the screen cutout.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "clarified-edge-display; physical-cutout proposal rejected",
+      "reason": "This software feature is a floating right-edge panel, not a physical camera cutout. Translation now names the screen-edge panel explicitly."
+    },
+    {
+      "id": "46e818156a78b297bc8b7391",
+      "path": "packages/i18n/locales/zh-CN/messages.po",
+      "heading": "Use screen-edge wording for the notch.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "clarified-edge-display; physical-cutout proposal rejected",
+      "reason": "This software feature is a floating right-edge panel, not a physical camera cutout. Translation now names the screen-edge panel explicitly."
+    },
+    {
+      "id": "1908b789b5494c510ddd1939",
+      "path": "packages/local-db/src/schema/usage-widget-appearances.test.ts",
+      "heading": "Wire the test into CI and stop migration setup at `0060`.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "duplicate fixed in #8883",
+      "reason": "Node-only local-db migration test now runs through the package/Turbo test path and excludes 0060 and later from setup."
+    },
+    {
+      "id": "9d40b4f7311469dbd06a6301",
+      "path": "apps/desktop/src/main/index.ts",
+      "heading": "Start host usage observations before initializing the tray.",
+      "url": "https://github.com/superset-sh/superset/pull/8884#pullrequestreview-5645866049",
+      "disposition": "fixed",
+      "reason": "Host observations now start before the tray can trigger the initial widget read."
+    }
+  ],
+  "primarySources": [
+    {
+      "url": "https://developer.apple.com/documentation/security/seckeychaingetuserinteractionallowed(_:)",
+      "use": "Keychain Services may require user interaction; no specified 750 ms completion guarantee."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/security/ksecuseauthenticationuifail",
+      "use": "Apple distinguishes an interaction-required error from a missing item; no retry or cached-identity bypass is justified."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/Security/main/SecurityTool/macOS/keychain_find.c",
+      "use": "Read-only review of Apple security-tool source. No authority for a specific larger timeout."
+    },
+    {
+      "url": "https://www.unicode.org/cldr/charts/49/supplemental/language_plural_rules.html",
+      "use": "Current CLDR cardinal categories for Czech, Polish and Russian."
+    }
+  ]
+}

@@ -1,0 +1,807 @@
+{
+  "checkedAt": "2026-10-26T01:18:00.936801+00:00",
+  "upstream": "d962fd0f2d529d935cb2bd7fde9691f2e374a717",
+  "combinedLocalSource": "3eb5b85c193bd2db56b4a00320b3c7bde32020d0",
+  "prHeads": {
+    "8400": "6b1e4e5b8b3a6858c35eb2b06f1f370f7a64f607",
+    "8460": "4c2da2f47a1c1fb2074f368ef5b2f1f14705f5c5",
+    "8461": "66239d502606ed018840a942cb311172b9816143",
+    "8462": "6ef0839d035c5c19f5ef23a837d6531934736d41",
+    "8463": "b382cee00d2fcca54a1bd03d5e66204cdc64c831",
+    "8464": "537290bc5662b4b8d4ee705bfa5a992ed50c20c2",
+    "8883": "bb3b54708ee2dc84f4a4ec074d441b5aa8dfc493",
+    "8884": "3212a4daeb3283b1286d9e4ab6756c59ec1e0e20",
+    "8888": "8ce2ec1b0fb5e785793bde8234c5d927be9cb9c3"
+  },
+  "wholeWorkspace": [
+    {
+      "name": "review-complete-tests",
+      "head": "3eb5b85c193bd2db56b4a00320b3c7bde32020d0",
+      "command": [
+        "./node_modules/.bin/turbo",
+        "test",
+        "--filter=!@superset/local-db",
+        "--filter=!@superset/i18n",
+        "--concurrency=2",
+        "--env-mode=loose",
+        "--",
+        "--parallel=1"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 381.123,
+      "summary": [
+        "@superset/cli-framework:test:  76 pass",
+        "@superset/cli-framework:test:  0 fail",
+        "@superset/cli-framework:test: Ran 76 tests across 8 files. [527.00ms]",
+        "@superset/workspace-fs:test:  194 pass",
+        "@superset/workspace-fs:test:  0 fail",
+        "@superset/workspace-fs:test: Ran 194 tests across 25 files. [29.92s]",
+        "@superset/host-client:test:  8 pass",
+        "@superset/host-client:test:  0 fail",
+        "@superset/host-client:test: Ran 8 tests across 1 file. [122.00ms]",
+        "@superset/port-scanner:test:  110 pass",
+        "@superset/port-scanner:test:  0 fail",
+        "@superset/port-scanner:test: Ran 110 tests across 6 files. [6.13s]",
+        "@superset/shared:test:  1450 pass",
+        "@superset/shared:test:  0 fail",
+        "@superset/shared:test: Ran 1450 tests across 86 files. [2.13s]",
+        "@superset/pty-daemon:test:  189 pass",
+        "@superset/pty-daemon:test:  0 fail",
+        "@superset/pty-daemon:test: Ran 189 tests across 16 files. [611.00ms]",
+        "@superset/chat:test:  94 pass",
+        "@superset/chat:test:  0 fail",
+        "@superset/chat:test: Ran 94 tests across 17 files. [3.06s]",
+        "@superset/realtime:test:  11 pass",
+        "@superset/realtime:test:  0 fail",
+        "@superset/realtime:test: Ran 11 tests across 3 files. [11.00ms]",
+        "@superset/chat-runtime:test:  441 pass",
+        "@superset/chat-runtime:test:  2 skip",
+        "@superset/chat-runtime:test:  0 fail",
+        "@superset/chat-runtime:test: Ran 443 tests across 37 files. [3.43s]",
+        "@superset/panes:test:  138 pass",
+        "@superset/panes:test:  0 fail",
+        "@superset/panes:test: Ran 138 tests across 6 files. [21.00ms]",
+        "@superset/chat-ui:test:  48 pass",
+        "@superset/chat-ui:test:  0 fail",
+        "@superset/chat-ui:test: Ran 48 tests across 10 files. [632.00ms]",
+        "@superset/email:test:  5 pass",
+        "@superset/email:test:  0 fail",
+        "@superset/email:test: Ran 5 tests across 2 files. [359.00ms]",
+        "@superset/auth:test:  88 pass",
+        "@superset/auth:test:  0 fail",
+        "@superset/auth:test: Ran 88 tests across 12 files. [365.00ms]",
+        "@superset/trpc:test:  702 pass",
+        "@superset/trpc:test:  0 fail",
+        "@superset/trpc:test: Ran 702 tests across 74 files. [9.38s]",
+        "@superset/marketing:test:  189 pass",
+        "@superset/marketing:test:  0 fail",
+        "@superset/marketing:test: Ran 189 tests across 29 files. [950.00ms]",
+        "@superset/sandbox:test:  21 pass",
+        "@superset/sandbox:test:  0 fail",
+        "@superset/sandbox:test: Ran 21 tests across 2 files. [55.00ms]",
+        "@superset/cloud-client:test:  27 pass",
+        "@superset/cloud-client:test:  0 fail",
+        "@superset/cloud-client:test: Ran 27 tests across 4 files. [422.00ms]",
+        "@superset/relay:test:  13 pass",
+        "@superset/relay:test:  0 fail",
+        "@superset/relay:test: Ran 13 tests across 4 files. [229.00ms]",
+        "@superset/agent-setup:test:  413 pass",
+        "@superset/agent-setup:test:  1 skip",
+        "@superset/agent-setup:test:  0 fail",
+        "@superset/agent-setup:test: Ran 414 tests across 19 files. [22.99s]",
+        "@superset/workspace-client:test:  29 pass",
+        "@superset/workspace-client:test:  0 fail",
+        "@superset/workspace-client:test: Ran 29 tests across 4 files. [7.59s]",
+        "@superset/mobile:test:  236 pass",
+        "@superset/mobile:test:  0 fail",
+        "@superset/mobile:test: Ran 236 tests across 41 files. [2.02s]",
+        "@superset/cli:test:  442 pass",
+        "@superset/cli:test:  0 fail",
+        "@superset/cli:test: Ran 442 tests across 64 files. [8.15s]",
+        "@superset/api:test:  234 pass",
+        "@superset/api:test:  0 fail",
+        "@superset/api:test: Ran 234 tests across 27 files. [6.18s]",
+        "@superset/web:test:  82 pass",
+        "@superset/web:test:  0 fail",
+        "@superset/web:test: Ran 82 tests across 5 files. [51.00ms]",
+        "@superset/desktop:test:  8980 pass",
+        "@superset/desktop:test:  0 fail",
+        "@superset/desktop:test: Ran 8980 tests across 719 files. [86.03s]",
+        "@superset/host-service:test:  3242 pass",
+        "@superset/host-service:test:  1 fail",
+        "@superset/host-service:test: Ran 3251 tests across 309 files. [361.48s]",
+        " Tasks:    26 successful, 27 total"
+      ]
+    },
+    {
+      "name": "review-complete-i18n",
+      "head": "3eb5b85c193bd2db56b4a00320b3c7bde32020d0",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.023,
+      "summary": [
+        " 168 pass",
+        " 0 fail",
+        "Ran 168 tests across 14 files. [2.02s]"
+      ]
+    },
+    {
+      "name": "review-complete-types",
+      "head": "3eb5b85c193bd2db56b4a00320b3c7bde32020d0",
+      "command": [
+        "./node_modules/.bin/turbo",
+        "typecheck",
+        "--concurrency=2",
+        "--env-mode=loose"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 17.073,
+      "summary": [
+        " Tasks:    40 successful, 40 total"
+      ]
+    },
+    {
+      "name": "review-complete-native-node24.22",
+      "head": "3eb5b85c193bd2db56b4a00320b3c7bde32020d0",
+      "command": [
+        "env",
+        "PATH=<task-evidence>/bin:<node-v24.22.1>/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "./node_modules/.bin/turbo",
+        "test:integration:terminal",
+        "--filter=@superset/host-service",
+        "--concurrency=1",
+        "--env-mode=loose"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 54.001,
+      "summary": [
+        " Tasks:    2 successful, 2 total"
+      ]
+    },
+    {
+      "name": "review-complete-migrations",
+      "head": "3eb5b85c193bd2db56b4a00320b3c7bde32020d0",
+      "command": [
+        "./node_modules/.bin/turbo",
+        "test",
+        "--filter=@superset/local-db",
+        "--concurrency=1",
+        "--env-mode=loose"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.238,
+      "summary": [
+        "@superset/local-db:test: # pass 2",
+        "@superset/local-db:test: # fail 0",
+        "@superset/local-db:test: # skipped 0",
+        " Tasks:    2 successful, 2 total"
+      ]
+    },
+    {
+      "name": "review-complete-lint",
+      "head": "3eb5b85c193bd2db56b4a00320b3c7bde32020d0",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.841,
+      "summary": [
+        "Checked 11178 files in 2s. No fixes applied."
+      ]
+    },
+    {
+      "name": "review-complete-catalogs",
+      "head": "3eb5b85c193bd2db56b4a00320b3c7bde32020d0",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "<task-evidence>/review-fixes/check-catalogs.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 8.403,
+      "summary": []
+    }
+  ],
+  "wholeWorkspaceAllPassed": false,
+  "scopedPRGatesPassed": true,
+  "unchangedBroadFailure": {
+    "upstream": "d962fd0f2d529d935cb2bd7fde9691f2e374a717",
+    "qualified": "3eb5b85c193bd2db56b4a00320b3c7bde32020d0",
+    "paths": [
+      {
+        "path": "packages/host-service/src/terminal/clean-shell-env.test.ts",
+        "upstreamBlob": "d47a617d71ae14b65ffd6197bd859ec00d85021b",
+        "combinedBlob": "d47a617d71ae14b65ffd6197bd859ec00d85021b",
+        "identical": true
+      },
+      {
+        "path": "packages/host-service/src/terminal/clean-shell-env.ts",
+        "upstreamBlob": "a677707e3576799047f91bd27fd27cb3b873d65d",
+        "combinedBlob": "a677707e3576799047f91bd27fd27cb3b873d65d",
+        "identical": true
+      },
+      {
+        "path": "packages/host-service/src/terminal/user-shell.ts",
+        "upstreamBlob": "06af43af7b38b5b02cdab26c8551ec0c4449a820",
+        "combinedBlob": "06af43af7b38b5b02cdab26c8551ec0c4449a820",
+        "identical": true
+      }
+    ],
+    "observedFailure": "Expected total open descriptors 11, received 8 at clean-shell-env.test.ts:202",
+    "disposition": "No change or retry to mask this broad-run failure. Feature PR-specific checks are separate. Cause unproven; no clean-upstream runtime reproduction claimed.",
+    "reference": "https://bun.com/docs/test"
+  },
+  "exactHeadGates": [
+    {
+      "pr": 8464,
+      "name": "review-pr8464-quota",
+      "head": "537290bc5662b4b8d4ee705bfa5a992ed50c20c2",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/trpc/router/usage"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.022
+    },
+    {
+      "pr": 8464,
+      "name": "review-pr8464-node-quota",
+      "head": "537290bc5662b4b8d4ee705bfa5a992ed50c20c2",
+      "command": [
+        "<node-v24.21.0>/bin/node",
+        "--import",
+        "tsx",
+        "--test",
+        "src/trpc/router/usage/codex-quota-config.node-test.ts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.257
+    },
+    {
+      "pr": 8464,
+      "name": "review-pr8464-host-types",
+      "head": "537290bc5662b4b8d4ee705bfa5a992ed50c20c2",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 5.391
+    },
+    {
+      "pr": 8400,
+      "name": "review-pr8400-runtime",
+      "head": "6b1e4e5b8b3a6858c35eb2b06f1f370f7a64f607",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.973
+    },
+    {
+      "pr": 8400,
+      "name": "review-pr8400-runtime-types",
+      "head": "6b1e4e5b8b3a6858c35eb2b06f1f370f7a64f607",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.504
+    },
+    {
+      "pr": 8400,
+      "name": "review-pr8400-chat-ui",
+      "head": "6b1e4e5b8b3a6858c35eb2b06f1f370f7a64f607",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.882
+    },
+    {
+      "pr": 8460,
+      "name": "review-pr8460-host",
+      "head": "4c2da2f47a1c1fb2074f368ef5b2f1f14705f5c5",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/terminal-agents/attribution-token.test.ts",
+        "src/trpc/router/agents"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.632
+    },
+    {
+      "pr": 8460,
+      "name": "review-pr8460-picker",
+      "head": "4c2da2f47a1c1fb2074f368ef5b2f1f14705f5c5",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AccountTerminalDialog",
+        "src/shared/quota-freshness.test.ts",
+        "src/renderer/hooks/host-service/useHostUsageQuota"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.295
+    },
+    {
+      "pr": 8460,
+      "name": "review-pr8460-host-types",
+      "head": "4c2da2f47a1c1fb2074f368ef5b2f1f14705f5c5",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 8.02
+    },
+    {
+      "pr": 8460,
+      "name": "review-pr8460-desktop-types",
+      "head": "4c2da2f47a1c1fb2074f368ef5b2f1f14705f5c5",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 23.685
+    },
+    {
+      "pr": 8461,
+      "name": "review-pr8461-recovery",
+      "head": "66239d502606ed018840a942cb311172b9816143",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/trpc/router/terminal-agents",
+        "src/terminal-agents",
+        "src/terminal/fresh-admission.test.ts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 4.77
+    },
+    {
+      "pr": 8461,
+      "name": "review-pr8461-continue-ui",
+      "head": "66239d502606ed018840a942cb311172b9816143",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/renderer/lib/terminal/continue-native-background.test.ts",
+        "src/renderer/lib/terminal/resume-with-background-reconnect.test.ts",
+        "src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AccountTerminalDialog"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.869
+    },
+    {
+      "pr": 8461,
+      "name": "review-pr8461-host-types",
+      "head": "66239d502606ed018840a942cb311172b9816143",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 8.228
+    },
+    {
+      "pr": 8461,
+      "name": "review-pr8461-desktop-types",
+      "head": "66239d502606ed018840a942cb311172b9816143",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 15.141
+    },
+    {
+      "pr": 8462,
+      "name": "review-pr8462-runtime",
+      "head": "6ef0839d035c5c19f5ef23a837d6531934736d41",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 3.513
+    },
+    {
+      "pr": 8462,
+      "name": "review-pr8462-chat-host",
+      "head": "6ef0839d035c5c19f5ef23a837d6531934736d41",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/chat-v3",
+        "src/trpc/router/chat-v3",
+        "src/workers/tasks/harness.test.ts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.24
+    },
+    {
+      "pr": 8462,
+      "name": "review-pr8462-chat-ui",
+      "head": "6ef0839d035c5c19f5ef23a837d6531934736d41",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/hooks/usePaneRegistry/components/ChatPane/components/AcpChatPane",
+        "src/renderer/routes/_authenticated/_dashboard/v2-workspace/$workspaceId/components/AccountTerminalDialog"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.266
+    },
+    {
+      "pr": 8462,
+      "name": "review-pr8462-host-types",
+      "head": "6ef0839d035c5c19f5ef23a837d6531934736d41",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 3.798
+    },
+    {
+      "pr": 8462,
+      "name": "review-pr8462-desktop-types",
+      "head": "6ef0839d035c5c19f5ef23a837d6531934736d41",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 9.103
+    },
+    {
+      "pr": 8463,
+      "name": "review-pr8463-saved",
+      "head": "b382cee00d2fcca54a1bd03d5e66204cdc64c831",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/trpc/router/saved-conversations",
+        "src/terminal-agents/saved-conversations",
+        "src/trpc/router/terminal-agents/account-resume-history.test.ts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.924
+    },
+    {
+      "pr": 8463,
+      "name": "review-pr8463-host-types",
+      "head": "b382cee00d2fcca54a1bd03d5e66204cdc64c831",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 5.967
+    },
+    {
+      "pr": 8463,
+      "name": "review-pr8463-desktop-types",
+      "head": "b382cee00d2fcca54a1bd03d5e66204cdc64c831",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 12.882
+    },
+    {
+      "pr": 8883,
+      "name": "review-pr8883-migration",
+      "head": "bb3b54708ee2dc84f4a4ec074d441b5aa8dfc493",
+      "command": [
+        "bun",
+        "run",
+        "test"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.306
+    },
+    {
+      "pr": 8883,
+      "name": "review-pr8883-types",
+      "head": "bb3b54708ee2dc84f4a4ec074d441b5aa8dfc493",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.277
+    },
+    {
+      "pr": 8884,
+      "name": "review-pr8884-desktop",
+      "head": "3212a4daeb3283b1286d9e4ab6756c59ec1e0e20",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 114.444
+    },
+    {
+      "pr": 8884,
+      "name": "review-pr8884-provider",
+      "head": "3212a4daeb3283b1286d9e4ab6756c59ec1e0e20",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/trpc/router/usage"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.204
+    },
+    {
+      "pr": 8884,
+      "name": "review-pr8884-plural",
+      "head": "3212a4daeb3283b1286d9e4ab6756c59ec1e0e20",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "test/usage-reset-plurals.test.ts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.115
+    },
+    {
+      "pr": 8884,
+      "name": "review-pr8884-host-types",
+      "head": "3212a4daeb3283b1286d9e4ab6756c59ec1e0e20",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 6.681
+    },
+    {
+      "pr": 8884,
+      "name": "review-pr8884-desktop-types",
+      "head": "3212a4daeb3283b1286d9e4ab6756c59ec1e0e20",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 11.241
+    },
+    {
+      "pr": 8888,
+      "name": "review-pr8888-native",
+      "head": "8ce2ec1b0fb5e785793bde8234c5d927be9cb9c3",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1",
+        "src/trpc/router/usage",
+        "src/trpc/router/terminal-agents/background-reconnect.test.ts",
+        "src/trpc/router/terminal-agents/background-reconnect-adapter.test.ts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.572
+    },
+    {
+      "pr": 8888,
+      "name": "review-pr8888-runtime",
+      "head": "8ce2ec1b0fb5e785793bde8234c5d927be9cb9c3",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 3.398
+    },
+    {
+      "pr": 8888,
+      "name": "review-pr8888-collector",
+      "head": "8ce2ec1b0fb5e785793bde8234c5d927be9cb9c3",
+      "command": [
+        "bun",
+        "test",
+        "--parallel=1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 22.689
+    },
+    {
+      "pr": 8888,
+      "name": "review-pr8888-host-types",
+      "head": "8ce2ec1b0fb5e785793bde8234c5d927be9cb9c3",
+      "command": [
+        "bun",
+        "run",
+        "build:types"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 6.707
+    },
+    {
+      "pr": 8888,
+      "name": "review-pr8888-desktop-types",
+      "head": "8ce2ec1b0fb5e785793bde8234c5d927be9cb9c3",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 16.475
+    },
+    {
+      "pr": 8400,
+      "head": "6b1e4e5b8b3a6858c35eb2b06f1f370f7a64f607",
+      "name": "review-pr8400-lint",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.416
+    },
+    {
+      "pr": 8460,
+      "head": "4c2da2f47a1c1fb2074f368ef5b2f1f14705f5c5",
+      "name": "review-pr8460-lint",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 8.613
+    },
+    {
+      "pr": 8461,
+      "head": "66239d502606ed018840a942cb311172b9816143",
+      "name": "review-pr8461-lint",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 7.756
+    },
+    {
+      "pr": 8462,
+      "head": "6ef0839d035c5c19f5ef23a837d6531934736d41",
+      "name": "review-pr8462-lint",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 7.733
+    },
+    {
+      "pr": 8463,
+      "head": "b382cee00d2fcca54a1bd03d5e66204cdc64c831",
+      "name": "review-pr8463-lint",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 9.224
+    },
+    {
+      "pr": 8464,
+      "head": "537290bc5662b4b8d4ee705bfa5a992ed50c20c2",
+      "name": "review-pr8464-lint",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 7.576
+    },
+    {
+      "pr": 8883,
+      "head": "bb3b54708ee2dc84f4a4ec074d441b5aa8dfc493",
+      "name": "review-pr8883-lint",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 9.212
+    },
+    {
+      "pr": 8884,
+      "head": "3212a4daeb3283b1286d9e4ab6756c59ec1e0e20",
+      "name": "review-pr8884-lint",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 7.517
+    },
+    {
+      "pr": 8888,
+      "head": "8ce2ec1b0fb5e785793bde8234c5d927be9cb9c3",
+      "name": "review-pr8888-lint",
+      "command": [
+        "bun",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 12.026
+    },
+    {
+      "pr": 8884,
+      "head": "3212a4daeb3283b1286d9e4ab6756c59ec1e0e20",
+      "name": "strict-catalogs",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "<task-evidence>/review-fixes/check-catalogs.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 24.498
+    }
+  ],
+  "limits": [
+    "Normal five-second Bun deadlines were preserved. File and package concurrency were bounded to avoid local resource contention.",
+    "Two fish-shell-dependent native tests remain skipped if the shell is unavailable; see native task summary.",
+    "No production installation, provider authentication changes or real user-session restart was performed.",
+    "Hosted CI and maintainer review are separate gates; local success is not a merge or approval."
+  ],
+  "earlierAttempts": [
+    "The first broad run exposed an incorrect Codex mock request count after reset metadata was composed; corrected to the exact two-endpoint envelope.",
+    "A parallel repository i18n scan hit its unchanged five-second deadline during simultaneous heavy type checking. The final scan is isolated; no deadline was raised.",
+    "The updated identity gate exposed an old widget test identity. The fixture now supplies the same verified identity proof as the real UI; resize and color-save assertions remain intact.",
+    "A new persisted-history regression initially failed static typing; explicit non-null admission and compatible window comparison fixed the test."
+  ]
+}
